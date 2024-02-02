@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from typing import Protocol
 from scipy import signal
 
-TODO: 'implement step response as well using  t,y = signal.dstep(sys3,n=30)'
+TODO: "implement step response as well using  t,y = signal.dstep(sys3,n=30)"
 
 side_frame_width = 140
 all_fig_size = (5, 5)
@@ -38,8 +38,8 @@ def create_freq_resp_plot(model):
     ax.grid()
     x_values = frequencies
     y_values = np.abs(freq_complex_resp)
-    ax.plot(x_values, y_values, label=f"frequency response")
-    ax.set_title(f"frequency response")
+    ax.plot(x_values, y_values, label="frequency response")
+    ax.set_title("frequency response")
     ax.set_xlabel("frequencies")
     ax.set_ylabel("response")
     # ax.legend()
@@ -52,8 +52,8 @@ def create_phase_resp_plot(model):
     ax.grid()
     x_values = frequencies
     y_values = np.angle(freq_complex_resp)
-    ax.plot(x_values, y_values, label=f"phase response")
-    ax.set_title(f"phase response")
+    ax.plot(x_values, y_values, label="phase response")
+    ax.set_title("phase response")
     ax.set_xlabel("frequencies")
     ax.set_ylabel("phase")
     # ax.legend()
@@ -66,51 +66,51 @@ def create_unit_circle():
     b = radius * np.sin(theta)
     fig, ax = plt.subplots(figsize=all_fig_size)
     ax.grid()
-    ax.axhline(y=0, color='k')
-    ax.axvline(x=0, color='k')
-    ax.plot(a, b, c='b')
+    ax.axhline(y=0, color="k")
+    ax.axvline(x=0, color="k")
+    ax.plot(a, b, c="b")
     return fig, ax
 
 
 def create_freq_domain_plot(model):
-    if model.type.name == 'DIGITAL':
+    if model.type.name == "DIGITAL":
         return create_z_plot(model)
-    elif model.type.name == 'ANALOG':
+    elif model.type.name == "ANALOG":
         return create_s_plot(model)
 
 
 def create_z_plot(model):
-    assert model.type.name == 'DIGITAL', 'z plot only for descrete case'
+    assert model.type.name == "DIGITAL", "z plot only for descrete case"
     fig, ax = create_unit_circle()
     ax.grid()
-    ax.set_title(f"Pole Zero map")
+    ax.set_title("Pole Zero map")
     for pole in model.poles:
-        ax.scatter(np.real(pole), np.imag(pole), marker='X', color='r', s=100)
+        ax.scatter(np.real(pole), np.imag(pole), marker="X", color="r", s=100)
     for zero in model.zeros:
-        ax.scatter(np.real(zero), np.imag(zero), marker='o', color='g', s=100)
+        ax.scatter(np.real(zero), np.imag(zero), marker="o", color="g", s=100)
     return fig, ax
 
 
 def create_s_plot(model):
-    assert model.type.name == 'ANALOG', 'S plot is only for continuous case'
+    assert model.type.name == "ANALOG", "S plot is only for continuous case"
     fig, ax = plt.subplots(figsize=all_fig_size)
     ax.grid()
     ax.set_ylim([-4, 4])
     ax.grid()
-    ax.axhline(y=0, color='k')
-    ax.axvline(x=0, color='k')
-    ax.set_title(f"Pole Zero map")
+    ax.axhline(y=0, color="k")
+    ax.axvline(x=0, color="k")
+    ax.set_title("Pole Zero map")
     for pole in model.poles:
-        ax.scatter(np.real(pole), np.imag(pole), marker='X', color='r', s=100)
+        ax.scatter(np.real(pole), np.imag(pole), marker="X", color="r", s=100)
     for zero in model.zeros:
-        ax.scatter(np.real(zero), np.imag(zero), marker='o', color='g', s=100)
+        ax.scatter(np.real(zero), np.imag(zero), marker="o", color="g", s=100)
     return fig, ax
 
 
 def create_time_plot(model):
-    if model.type.name == 'DIGITAL':
+    if model.type.name == "DIGITAL":
         return create_digital_impulse_time_response(model)
-    elif model.type.name == 'ANALOG':
+    elif model.type.name == "ANALOG":
         return create_analog_impulse_time_response(model)
 
 
@@ -121,9 +121,9 @@ def create_digital_impulse_time_response(model):
     t, y = signal.dimpulse(sys3, n=30)
     ax.step(t, np.squeeze(y))
     ax.grid()
-    ax.set_xlabel('Number of samples')
-    ax.set_ylabel('Amplitude')
-    ax.set_title(f"Time response")
+    ax.set_xlabel("Number of samples")
+    ax.set_ylabel("Amplitude")
+    ax.set_title("Time response")
     return fig, ax
 
 
@@ -133,7 +133,7 @@ def create_analog_impulse_time_response(model):
     t, y = signal.impulse(sys3)
     ax.plot(t, y)
     ax.grid()
-    ax.set_xlabel('time')
-    ax.set_ylabel('Amplitude')
-    ax.set_title(f"Time response")
+    ax.set_xlabel("time")
+    ax.set_ylabel("Amplitude")
+    ax.set_title("Time response")
     return fig, ax

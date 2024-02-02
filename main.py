@@ -1,5 +1,3 @@
-
-
 from view import App
 from model import Model
 from presenter import Presenter
@@ -12,6 +10,5 @@ def main():
     presenter.run()
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
