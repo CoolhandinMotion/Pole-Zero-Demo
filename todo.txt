@@ -1,0 +1,20 @@
+========================
+========= TODO =========
+========================
+
+TOP PRIORITY:
+> Add animation for time steps
+> Add vectors in plot to current w value
+
+LOWER PRIORITY:
+> Add time steps
+> Add scaling (zooming)
+> Fix UI formatting so the window opens with an appropriate size (responsive)
+> Make axis customizable (e.g. max plotting time)
+> Add saving images and complete state
+> Add clicking to add zeros and poles
+> Check performance (profiling)
+> Step response
+> Input arbitrary function
+> Snappy grid for setting points accurately (optional)
+> Fix closing the window so it immediately stops
