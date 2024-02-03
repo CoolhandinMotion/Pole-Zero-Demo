@@ -9,19 +9,26 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import utilities
 from functools import partial
 
-TODO: 'a button for save as PDF in the Side Frame'
-TODO: 'Animation mode as requested by professor'
+TODO: "a button for save as PDF in the Side Frame"
+TODO: "Animation mode as requested by professor"
 
 
-customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
-customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
+customtkinter.set_appearance_mode(
+    "System"
+)  # Modes: "System" (standard), "Dark", "Light"
+customtkinter.set_default_color_theme(
+    "blue"
+)  # Themes: "blue" (standard), "green", "dark-blue"
 
 model_menu_values = ["Digital", "Analog"]
 filter_menu_values = ["Tief pass", "Hoch pass", "Band pass", "Band stop"]
 
 app_geometry = (750, 750)
+
+
 def get_initial_ui_values():
     return model_menu_values[0], filter_menu_values[0]
+
 
 @dataclass
 class Model(Protocol):
@@ -60,15 +67,18 @@ class App(customtkinter.CTk):
         self.response_plot_frame = ResponsePlotFrame(self, presenter, 1)
         self.pole_frame = PoleFrame(self, presenter)
         self.zero_frame = ZeroFrame(self, presenter)
-        self.manual_pole_zero_button = customtkinter.CTkButton(master=self,
-                                                               text='Eingeben',
-                                                               command=presenter.change_manual_model)
+        self.manual_pole_zero_button = customtkinter.CTkButton(
+            master=self, text="Eingeben", command=presenter.change_manual_model
+        )
         self.manual_pole_zero_button.grid(row=3, column=5, sticky="n")
 
 
 class SideFrame(customtkinter.CTkFrame):
     def __init__(self, master, presenter: Presenter) -> None:
-        super().__init__(master, corner_radius=0, )
+        super().__init__(
+            master,
+            corner_radius=0,
+        )
         # self.place(x=0, y=0, relwidth=0.15, relheight=1)
         self.presenter = presenter
         self.init_side_frame()
@@ -80,30 +90,41 @@ class SideFrame(customtkinter.CTkFrame):
         self.grid_columnconfigure(1, weight=1)
         self.grid(row=0, column=0, rowspan=11, sticky="nsew")
 
-        self.logo_label = customtkinter.CTkLabel(self, text="Zero Pole Demo",
-                                                 font=customtkinter.CTkFont(size=12, weight="bold"))
-        self.logo_label.grid(row=0, column=0, columnspan=2, padx=20, pady=20, sticky='n')
+        self.logo_label = customtkinter.CTkLabel(
+            self,
+            text="Zero Pole Demo",
+            font=customtkinter.CTkFont(size=12, weight="bold"),
+        )
+        self.logo_label.grid(
+            row=0, column=0, columnspan=2, padx=20, pady=20, sticky="n"
+        )
 
         value_inside = tk.StringVar()
         value_inside.set(model_menu_values[0])
 
-        self.optionmenu_model = customtkinter.CTkOptionMenu(self, dynamic_resizing=False,
-                                                            variable=value_inside,
-                                                            values=model_menu_values,
-                                                            command=self.presenter.change_default_model)
-        self.optionmenu_model.grid(row=1, column=0, padx=10, pady=20, sticky='n')
+        self.optionmenu_model = customtkinter.CTkOptionMenu(
+            self,
+            dynamic_resizing=False,
+            variable=value_inside,
+            values=model_menu_values,
+            command=self.presenter.change_default_model,
+        )
+        self.optionmenu_model.grid(row=1, column=0, padx=10, pady=20, sticky="n")
 
         value_inside = tk.StringVar()
         value_inside.set(filter_menu_values[0])
-        self.optionmenu_filter = customtkinter.CTkOptionMenu(self, dynamic_resizing=False,
-                                                             variable=value_inside,
-                                                             values=filter_menu_values,
-                                                             command=self.presenter.change_default_model)
+        self.optionmenu_filter = customtkinter.CTkOptionMenu(
+            self,
+            dynamic_resizing=False,
+            variable=value_inside,
+            values=filter_menu_values,
+            command=self.presenter.change_default_model,
+        )
 
-        self.optionmenu_filter.grid(row=2, column=0, padx=10, pady=10, sticky='n')
+        self.optionmenu_filter.grid(row=2, column=0, padx=10, pady=10, sticky="n")
 
 
-class ResponsePlotFrame():
+class ResponsePlotFrame:
     plots_2_display = []
 
     def __init__(self, master, presenter: Presenter, span) -> None:
@@ -116,19 +137,27 @@ class ResponsePlotFrame():
         self.wipe_plot_frame()
 
         # generates pole zero map on top left corner of response frame
-        self.canvas1 = EmptyCanvas(self.master, self.presenter, grid_row=0, grid_column=1, span=self.span)
+        self.canvas1 = EmptyCanvas(
+            self.master, self.presenter, grid_row=0, grid_column=1, span=self.span
+        )
         self.plots_2_display.append(self.canvas1)
 
         # generates time response on bottom left corner of response frame
-        self.canvas2 = EmptyCanvas(self.master, self.presenter, grid_row=2, grid_column=1, span=self.span)
+        self.canvas2 = EmptyCanvas(
+            self.master, self.presenter, grid_row=2, grid_column=1, span=self.span
+        )
         self.plots_2_display.append(self.canvas2)
 
         # generates frequency on top right corner of response frame
-        self.canvas3 = EmptyCanvas(self.master, self.presenter, grid_row=0, grid_column=3, span=self.span)
+        self.canvas3 = EmptyCanvas(
+            self.master, self.presenter, grid_row=0, grid_column=3, span=self.span
+        )
         self.plots_2_display.append(self.canvas3)
 
         # generates phase response on bottom right corner of response frame
-        self.canvas4 = EmptyCanvas(self.master, self.presenter, grid_row=2, grid_column=3, span=self.span)
+        self.canvas4 = EmptyCanvas(
+            self.master, self.presenter, grid_row=2, grid_column=3, span=self.span
+        )
         self.plots_2_display.append(self.canvas4)
 
         self.update_plot()
@@ -150,7 +179,6 @@ class ResponsePlotFrame():
         my_func = partial(utilities.create_phase_resp_plot, self.presenter.model)
         self.canvas4.canvas_shw_func(my_func)
 
-
     def wipe_plot_frame(self) -> None:
         plots_list = self.plots_2_display.copy()
         for plot in plots_list:
@@ -171,12 +199,18 @@ class EmptyCanvas(customtkinter.CTkCanvas):
         self.init_canvas()
 
     def init_canvas(self) -> None:
-        self.grid(row=self.grid_row, column=self.grid_column, rowspan=self.span, columnspan=self.span, sticky='nsew')
+        self.grid(
+            row=self.grid_row,
+            column=self.grid_column,
+            rowspan=self.span,
+            columnspan=self.span,
+            sticky="nsew",
+        )
 
     def canvas_shw_func(self, func) -> None:
         fig, ax = func()
         self.canvas = FigureCanvasTkAgg(fig, self)
-        self.canvas.get_tk_widget().grid(sticky='nsew')
+        self.canvas.get_tk_widget().grid(sticky="nsew")
 
 
 class PoleFrame(customtkinter.CTkScrollableFrame):
@@ -196,15 +230,21 @@ class PoleFrame(customtkinter.CTkScrollableFrame):
 
     def display_poles(self) -> None:
         for i in range(len(self.presenter.model.poles)):
-            entry_re = customtkinter.CTkEntry(self, placeholder_text=f"{np.real(self.presenter.model.poles[i])}")
+            entry_re = customtkinter.CTkEntry(
+                self, placeholder_text=f"{np.real(self.presenter.model.poles[i])}"
+            )
             entry_re.grid(row=i, column=1, padx=10, pady=(0, 20))
-            entry_im = customtkinter.CTkEntry(self, placeholder_text=f"{np.imag(self.presenter.model.poles[i])}")
+            entry_im = customtkinter.CTkEntry(
+                self, placeholder_text=f"{np.imag(self.presenter.model.poles[i])}"
+            )
             entry_im.grid(row=i, column=3, padx=10, pady=(0, 20))
             self.poles_2_display.append([entry_re, entry_im])
-        for i in range(len(self.presenter.model.poles), len(self.presenter.model.poles) + 3):
-            entry_re = customtkinter.CTkEntry(self, placeholder_text=f"leer")
+        for i in range(
+            len(self.presenter.model.poles), len(self.presenter.model.poles) + 3
+        ):
+            entry_re = customtkinter.CTkEntry(self, placeholder_text="leer")
             entry_re.grid(row=i, column=1, padx=10, pady=(0, 20))
-            entry_im = customtkinter.CTkEntry(self, placeholder_text=f"leer")
+            entry_im = customtkinter.CTkEntry(self, placeholder_text="leer")
             entry_im.grid(row=i, column=3, padx=10, pady=(0, 20))
             self.poles_2_display.append([entry_re, entry_im])
 
@@ -227,20 +267,26 @@ class ZeroFrame(customtkinter.CTkScrollableFrame):
 
     def init_zero_frame(self) -> None:
         self.grid(row=2, column=5, sticky="nsew")
-        self.grid_columnconfigure((0,1,2,3), weight=1)
+        self.grid_columnconfigure((0, 1, 2, 3), weight=1)
         self.display_zeros()
 
     def display_zeros(self) -> None:
         for i in range(len(self.presenter.model.zeros)):
-            entry_re = customtkinter.CTkEntry(self, placeholder_text=f"{np.real(self.presenter.model.zeros[i])}")
+            entry_re = customtkinter.CTkEntry(
+                self, placeholder_text=f"{np.real(self.presenter.model.zeros[i])}"
+            )
             entry_re.grid(row=i, column=1, padx=10, pady=(0, 20))
-            entry_im = customtkinter.CTkEntry(self, placeholder_text=f"{np.imag(self.presenter.model.zeros[i])}")
+            entry_im = customtkinter.CTkEntry(
+                self, placeholder_text=f"{np.imag(self.presenter.model.zeros[i])}"
+            )
             entry_im.grid(row=i, column=3, padx=10, pady=(0, 20))
             self.zeros_2_display.append([entry_re, entry_im])
-        for i in range(len(self.presenter.model.zeros), len(self.presenter.model.zeros) + 3):
-            entry_re = customtkinter.CTkEntry(self, placeholder_text=f"leer")
+        for i in range(
+            len(self.presenter.model.zeros), len(self.presenter.model.zeros) + 3
+        ):
+            entry_re = customtkinter.CTkEntry(self, placeholder_text="leer")
             entry_re.grid(row=i, column=1, padx=10, pady=(0, 20))
-            entry_im = customtkinter.CTkEntry(self, placeholder_text=f"leer")
+            entry_im = customtkinter.CTkEntry(self, placeholder_text="leer")
             entry_im.grid(row=i, column=3, padx=10, pady=(0, 20))
             self.zeros_2_display.append([entry_re, entry_im])
 
