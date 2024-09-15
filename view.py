@@ -9,8 +9,8 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import utilities
 from functools import partial
 
-TODO: "a button for save as PDF in the Side Frame"
-TODO: "Animation mode as requested by professor"
+# TODO: "a button for save as PDF in the Side Frame"
+# TODO: "Animation mode as requested by professor"
 
 
 customtkinter.set_appearance_mode(
@@ -81,9 +81,9 @@ class SideFrame(customtkinter.CTkFrame):
         )
         # self.place(x=0, y=0, relwidth=0.15, relheight=1)
         self.presenter = presenter
-        self.init_side_frame()
+        self.__init_side_frame()
 
-    def init_side_frame(self) -> None:
+    def __init_side_frame(self) -> None:
         self.grid_rowconfigure(tuple(range(3)), weight=1)
         self.grid_rowconfigure(4, weight=50)
         self.grid_columnconfigure(0, weight=50)
@@ -134,7 +134,7 @@ class ResponsePlotFrame:
         self.init_plot_frame()
 
     def init_plot_frame(self) -> None:
-        self.wipe_plot_frame()
+        self.__wipe_plot_frame()
 
         # generates pole zero map on top left corner of response frame
         self.canvas1 = EmptyCanvas(
@@ -179,7 +179,7 @@ class ResponsePlotFrame:
         my_func = partial(utilities.create_phase_resp_plot, self.presenter.model)
         self.canvas4.canvas_shw_func(my_func)
 
-    def wipe_plot_frame(self) -> None:
+    def __wipe_plot_frame(self) -> None:
         plots_list = self.plots_2_display.copy()
         for plot in plots_list:
             plot.destroy()
@@ -196,9 +196,9 @@ class EmptyCanvas(customtkinter.CTkCanvas):
         self.grid_row = grid_row
         self.grid_column = grid_column
         self.span = span
-        self.init_canvas()
+        self.__init_canvas()
 
-    def init_canvas(self) -> None:
+    def __init_canvas(self) -> None:
         self.grid(
             row=self.grid_row,
             column=self.grid_column,
@@ -221,9 +221,9 @@ class PoleFrame(customtkinter.CTkScrollableFrame):
         # self.place(x=0, y=0, relwidth=0.15, relheight=1)
         self.presenter = presenter
         # self.pole_frame_values =
-        self.init_pole_frame()
+        self.__init_pole_frame()
 
-    def init_pole_frame(self) -> None:
+    def __init_pole_frame(self) -> None:
         self.grid(row=0, column=5, sticky="nsew")
         self.grid_columnconfigure((0, 1, 2, 3), weight=1)
         self.display_poles()
@@ -263,9 +263,9 @@ class ZeroFrame(customtkinter.CTkScrollableFrame):
     def __init__(self, master, presenter: Presenter) -> None:
         super().__init__(master, label_text="Zeros [Real, Imaginary]")
         self.presenter = presenter
-        self.init_zero_frame()
+        self.__init_zero_frame()
 
-    def init_zero_frame(self) -> None:
+    def __init_zero_frame(self) -> None:
         self.grid(row=2, column=5, sticky="nsew")
         self.grid_columnconfigure((0, 1, 2, 3), weight=1)
         self.display_zeros()

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from typing import Protocol
 from scipy import signal
 
-TODO: "implement step response as well using  t,y = signal.dstep(sys3,n=30)"
+# TODO: "implement step response as well using  t,y = signal.dstep(sys3,n=30)"
 
 side_frame_width = 140
 all_fig_size = (5, 5)
@@ -13,24 +13,6 @@ radius = 1
 grid_division = 11
 
 
-@dataclass
-class Model(Protocol):
-    poles: list
-    zeros: list
-    freqs: list
-    complex_f_resp: list
-
-
-@dataclass
-class Presenter(Protocol):
-    model: Model
-
-    def change_default_model(self, variable):
-        ...
-
-    def change_manual_model(self):
-        ...
-
 
 def create_freq_resp_plot(model):
     frequencies, freq_complex_resp = model.freqs, model.complex_f_resp
@@ -38,10 +20,10 @@ def create_freq_resp_plot(model):
     ax.grid()
     x_values = frequencies
     y_values = np.abs(freq_complex_resp)
-    ax.plot(x_values, y_values, label="frequency response")
-    ax.set_title("frequency response")
-    ax.set_xlabel("frequencies")
-    ax.set_ylabel("response")
+    ax.plot(x_values, y_values, label="Frequency response")
+    ax.set_title("Frequency response")
+    ax.set_xlabel("Frequencies")
+    ax.set_ylabel("Gain")
     # ax.legend()
     return fig, ax
 
@@ -52,7 +34,7 @@ def create_phase_resp_plot(model):
     ax.grid()
     x_values = frequencies
     y_values = np.angle(freq_complex_resp)
-    ax.plot(x_values, y_values, label="phase response")
+    ax.plot(x_values, y_values, label="Phase response")
     ax.set_title("phase response")
     ax.set_xlabel("frequencies")
     ax.set_ylabel("phase")
@@ -123,7 +105,7 @@ def create_digital_impulse_time_response(model):
     ax.grid()
     ax.set_xlabel("Number of samples")
     ax.set_ylabel("Amplitude")
-    ax.set_title("Time response")
+    ax.set_title("Impulse time response")
     return fig, ax
 
 
@@ -135,5 +117,5 @@ def create_analog_impulse_time_response(model):
     ax.grid()
     ax.set_xlabel("time")
     ax.set_ylabel("Amplitude")
-    ax.set_title("Time response")
+    ax.set_title("Impulse time response")
     return fig, ax
