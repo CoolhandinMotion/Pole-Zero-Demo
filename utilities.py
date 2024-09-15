@@ -5,7 +5,7 @@ from typing import Protocol
 from scipy import signal
 
 # TODO: "implement step response as well using  t,y = signal.dstep(sys3,n=30)"
-
+# TODO: "show Fach in int close to x or o pointer on S or Z plane"
 side_frame_width = 140
 all_fig_size = (5, 5)
 theta = np.linspace(0, 2 * np.pi, 150)

@@ -15,7 +15,7 @@ class Presenter:
 
         next_model_type = STRING_2_MODELTYPE[model_type_str]
         next_filter_type = STRING_2_FILTERTYPE[filter_type_str]
-        "Nader thinks code below is redundant. "
+        "Nader thinks code below is redundant. Except maybe for resetting default factory values "
         self.model = Model()
         self.model.init_default_model(type=next_model_type, filter=next_filter_type)
         plt.close("all")
@@ -27,40 +27,52 @@ class Presenter:
         self.app.response_plot_frame.refresh_plot_frame()
         self.app.pole_frame.display_poles()
         self.app.zero_frame.display_zeros()
-        # print(self.model)
+
     "here fach should be implemented"
+    "fach zero and fach negative should be handeled"
     def handle_manual_coordinates(self):
-        for re_zero_entry, im_zero_entry in self.app.zero_frame.zeros_2_display:
+        for re_zero_entry, im_zero_entry,fach_zero_entry in self.app.zero_frame.zeros_2_display:
             if re_zero_entry.get() and im_zero_entry.get():
                 complex_num = complex(
                     float(re_zero_entry.get()), float(im_zero_entry.get())
                 )
                 conj_num = np.conj(complex_num)
-                # If the pole is real there is no need to append conjugate value
-                if complex_num == conj_num:
-                    # self.model.zeros.append(complex_num)
-                    self.model.zeros[complex_num] +=1
-                else:
-                    # self.model.zeros.append(complex_num)
-                    self.model.zeros[complex_num] +=1
-                    # self.model.zeros.append(conj_num)
-                    self.model.zeros[conj_num] += 1
+                fach = fach_zero_entry.get()
+                try: #default fach value is 1 if user makes a mistake
+                    fach = float(fach)
+                    fach = 1 if fach < 0 else int(fach)
+                except ValueError:
+                    fach = 1
 
-        for re_pole_entry, im_pole_entry in self.app.pole_frame.poles_2_display:
+                if fach == 0:
+                    "delete the zero altogether, use continue keyword"
+                    ...
+                # If the zero is real there is no need to append conjugate value
+                if complex_num == conj_num:
+                    self.model.zeros[complex_num] +=fach
+                else:
+                    self.model.zeros[complex_num] +=fach
+                    self.model.zeros[conj_num] += fach
+
+        for re_pole_entry, im_pole_entry,fach_pole_entry in self.app.pole_frame.poles_2_display:
             if re_pole_entry.get() and im_pole_entry.get():
                 complex_num = complex(
                     float(re_pole_entry.get()), float(im_pole_entry.get())
                 )
                 conj_num = np.conj(complex_num)
+                fach = fach_pole_entry.get()
+                try:#default fach value is 1 if user makes a mistake
+                    fach = float(fach)
+                    fach = 1 if fach < 0 else int(fach)
+                except ValueError:
+                    fach = 1
+
                 # If the pole is real there is no need to append conjugate value
                 if complex_num == conj_num:
-                    # self.model.poles.append(complex_num)
-                    self.model.poles[complex_num] +=1
+                    self.model.poles[complex_num] +=fach
                 else:
-                    # self.model.poles.append(complex_num)
-                    self.model.poles[complex_num] += 1
-                    # self.model.poles.append(conj_num)
-                    self.model.poles[conj_num] += 1
+                    self.model.poles[complex_num] += fach
+                    self.model.poles[conj_num] += fach
 
     def change_manual_model(self):
         self.handle_manual_coordinates()

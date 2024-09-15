@@ -74,12 +74,9 @@ def get_default_poles_zeros(type_str: str, filter_str: str):
                 conj_num = np.conj(complex_num)
                 # If the pole is real there is no need to append conjugate value
                 if complex_num == conj_num:
-                    # complex_poles_list.append(complex_num)
                     complex_poles_dict[complex_num] +=1
                 else:
-                    # complex_poles_list.append(complex_num)
                     complex_poles_dict[complex_num] += 1
-                    # complex_poles_list.append(conj_num)
                     complex_poles_dict[conj_num] += 1
 
         # The reason for this if statement is that some default filters do not have any poles or zeros
@@ -89,12 +86,9 @@ def get_default_poles_zeros(type_str: str, filter_str: str):
                 complex_num = complex_number_from_list(zero)
                 conj_num = np.conj(complex_num)
                 if complex_num == conj_num:
-                    # complex_zeros_list.append(complex_num)
                     complex_zeros_dict[complex_num] +=1
                 else:
-                    # complex_zeros_list.append(complex_num)
                     complex_zeros_dict[complex_num] += 1
-                    # complex_zeros_list.append(conj_num)
                     complex_zeros_dict[conj_num] += 1
     return complex_poles_dict, complex_zeros_dict
 

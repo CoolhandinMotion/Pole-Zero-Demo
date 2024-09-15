@@ -229,49 +229,40 @@ class ManualPoleFrame(customtkinter.CTkScrollableFrame):
         super().__init__(master, label_text="Poles [Real, Imaginary]")
         # self.place(x=0, y=0, relwidth=0.15, relheight=1)
         self.presenter = presenter
-        # self.pole_frame_values =
         self.__init_pole_frame()
 
     def __init_pole_frame(self) -> None:
         self.grid(row=0, column=5, sticky="nsew")
-        self.grid_columnconfigure((0, 1, 2, 3), weight=1)
+        self.grid_columnconfigure((0, 1, 2, 3, 4, 5), weight=1)
         self.display_poles()
 
     def display_poles(self) -> None:
         for i,pole in enumerate(self.presenter.model.poles.keys()):
             entry_re = customtkinter.CTkEntry(self, placeholder_text=f"{np.real(pole)}")
-            entry_re.grid(row=i, column=1, padx=10, pady=(0, 20))
+            entry_re.grid(row=i, column=0, padx=10, pady=(0, 20))
             entry_im = customtkinter.CTkEntry(self, placeholder_text=f"{np.imag(pole)}")
-            entry_im.grid(row=i, column=3, padx=10, pady=(0, 20))
-            self.poles_2_display.append([entry_re, entry_im])# members are tkinter objects not numbers
-
-        # for i in range(len(self.presenter.model.poles)):
-        #     entry_re = customtkinter.CTkEntry(
-        #         self, placeholder_text=f"{np.real(self.presenter.model.poles[i])}"
-        #     )
-        #     entry_re.grid(row=i, column=1, padx=10, pady=(0, 20))
-        #     entry_im = customtkinter.CTkEntry(
-        #         self, placeholder_text=f"{np.imag(self.presenter.model.poles[i])}"
-        #     )
-        #     entry_im.grid(row=i, column=3, padx=10, pady=(0, 20))
-        #     self.poles_2_display.append([entry_re, entry_im])# members are tkinter objects not numbers
+            entry_im.grid(row=i, column=2, padx=10, pady=(0, 20))
+            entry_fach = customtkinter.CTkEntry(self, placeholder_text=f"{self.presenter.model.poles[pole]}")
+            entry_fach.grid(row=i, column=4, padx=10, pady=(0, 20))
+            self.poles_2_display.append([entry_re, entry_im,entry_fach])# members are tkinter objects not numbers
 
         'below leaving 3 empty place holders for user to enter poles manually'
         for i in range(
             len(self.presenter.model.poles.keys()), len(self.presenter.model.poles.keys()) + 3
         ):
-            entry_re = customtkinter.CTkEntry(self, placeholder_text="leer")
-            entry_re.grid(row=i, column=1, padx=10, pady=(0, 20))
-            entry_im = customtkinter.CTkEntry(self, placeholder_text="leer")
-            entry_im.grid(row=i, column=3, padx=10, pady=(0, 20))
-            self.poles_2_display.append([entry_re, entry_im])# empty placeholders are also objects that are saved for reference
+            entry_re = customtkinter.CTkEntry(self, placeholder_text="real")
+            entry_re.grid(row=i, column=0, padx=10, pady=(0, 20))
+            entry_im = customtkinter.CTkEntry(self, placeholder_text="imaginary")
+            entry_im.grid(row=i, column=2, padx=10, pady=(0, 20))
+            entry_fach = customtkinter.CTkEntry(self, placeholder_text="fach")
+            entry_fach.grid(row=i, column=4, padx=10, pady=(0, 20))
+            self.poles_2_display.append([entry_re, entry_im,entry_fach])# empty placeholders are also objects that are saved for reference
 
     def wipe_pole_display(self) -> None:
         copy_list = self.poles_2_display.copy()
-        for re_disp, im_disp in copy_list:
-            re_disp.destroy()
-            im_disp.destroy()
-
+        for pole_display_entry in copy_list:
+            for pole_section in pole_display_entry:
+                pole_section.destroy()
         self.poles_2_display.clear()
 
 
@@ -286,41 +277,34 @@ class ManualZeroFrame(customtkinter.CTkScrollableFrame):
 
     def __init_zero_frame(self) -> None:
         self.grid(row=2, column=5, sticky="nsew")
-        self.grid_columnconfigure((0, 1, 2, 3), weight=1)
+        self.grid_columnconfigure((0, 1, 2, 3, 4, 5), weight=1)
         self.display_zeros()
 
     def display_zeros(self) -> None:
         for i,zero in enumerate(self.presenter.model.zeros.keys()):
             entry_re = customtkinter.CTkEntry(self, placeholder_text=f"{np.real(zero)}")
-            entry_re.grid(row=i, column=1, padx=10, pady=(0, 20))
+            entry_re.grid(row=i, column=0, padx=10, pady=(0, 20))
             entry_im = customtkinter.CTkEntry(self, placeholder_text=f"{np.imag(zero)}")
-            entry_im.grid(row=i, column=3, padx=10, pady=(0, 20))
-            self.zeros_2_display.append([entry_re, entry_im]) # members are tkinter objects not numbers
-        #
-        # for i in range(len(self.presenter.model.zeros)):
-        #     entry_re = customtkinter.CTkEntry(
-        #         self, placeholder_text=f"{np.real(self.presenter.model.zeros[i])}"
-        #     )
-        #     entry_re.grid(row=i, column=1, padx=10, pady=(0, 20))
-        #     entry_im = customtkinter.CTkEntry(
-        #         self, placeholder_text=f"{np.imag(self.presenter.model.zeros[i])}"
-        #     )
-        #     entry_im.grid(row=i, column=3, padx=10, pady=(0, 20))
-        #     self.zeros_2_display.append([entry_re, entry_im]) # members are tkinter objects not numbers
+            entry_im.grid(row=i, column=2, padx=10, pady=(0, 20))
+            entry_fach = customtkinter.CTkEntry(self, placeholder_text=f"{self.presenter.model.zeros[zero]}")
+            entry_fach.grid(row=i, column=4, padx=10, pady=(0, 20))
+            self.zeros_2_display.append([entry_re, entry_im,entry_fach]) # members are tkinter objects not numbers
         'below leaving 3 empty place holders for user to enter zeros manually'
         for i in range(
             len(self.presenter.model.zeros.keys()), len(self.presenter.model.zeros.keys()) + 3
         ):
-            entry_re = customtkinter.CTkEntry(self, placeholder_text="leer")
-            entry_re.grid(row=i, column=1, padx=10, pady=(0, 20))
-            entry_im = customtkinter.CTkEntry(self, placeholder_text="leer")
-            entry_im.grid(row=i, column=3, padx=10, pady=(0, 20))
-            self.zeros_2_display.append([entry_re, entry_im]) # empty placeholders are also objects that are saved here for reference
+            entry_re = customtkinter.CTkEntry(self, placeholder_text="real")
+            entry_re.grid(row=i, column=0, padx=10, pady=(0, 20))
+            entry_im = customtkinter.CTkEntry(self, placeholder_text="imaginary")
+            entry_im.grid(row=i, column=2, padx=10, pady=(0, 20))
+            entry_fach = customtkinter.CTkEntry(self, placeholder_text="fach")
+            entry_fach.grid(row=i, column=4, padx=10, pady=(0, 20))
+            self.zeros_2_display.append([entry_re, entry_im,entry_fach]) # empty placeholders are also objects that are saved here for reference
 
     def wipe_zero_display(self) -> None:
         copy_list = self.zeros_2_display.copy()
-        for re_disp, im_disp in copy_list:
-            re_disp.destroy()
-            im_disp.destroy()
+        for zero_display_entry in copy_list:
+            for zero_section in zero_display_entry:
+                zero_section.destroy()
 
         self.zeros_2_display.clear()
