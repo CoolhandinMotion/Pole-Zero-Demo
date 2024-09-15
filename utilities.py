@@ -12,7 +12,9 @@ theta = np.linspace(0, 2 * np.pi, 150)
 radius = 1
 grid_division = 11
 
-
+def build_repeated_item_list_from_dict(dictionary:dict) -> list:
+    repeated_list = [key for key, value in dictionary.items() for i in range(value)]
+    return  repeated_list
 
 def create_freq_resp_plot(model):
     frequencies, freq_complex_resp = model.freqs, model.complex_f_resp
@@ -66,9 +68,9 @@ def create_z_plot(model):
     fig, ax = create_unit_circle()
     ax.grid()
     ax.set_title("Pole Zero map")
-    for pole in model.poles:
+    for pole in model.poles.keys():
         ax.scatter(np.real(pole), np.imag(pole), marker="X", color="r", s=100)
-    for zero in model.zeros:
+    for zero in model.zeros.keys():
         ax.scatter(np.real(zero), np.imag(zero), marker="o", color="g", s=100)
     return fig, ax
 
@@ -82,9 +84,9 @@ def create_s_plot(model):
     ax.axhline(y=0, color="k")
     ax.axvline(x=0, color="k")
     ax.set_title("Pole Zero map")
-    for pole in model.poles:
+    for pole in model.poles.keys():
         ax.scatter(np.real(pole), np.imag(pole), marker="X", color="r", s=100)
-    for zero in model.zeros:
+    for zero in model.zeros.keys():
         ax.scatter(np.real(zero), np.imag(zero), marker="o", color="g", s=100)
     return fig, ax
 

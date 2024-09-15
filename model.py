@@ -1,10 +1,11 @@
-from typing import Protocol
 from enum import Enum, auto
 from dataclasses import dataclass, field
 import json
 import numpy as np
-from scipy.signal import freqz, freqs
-from scipy.signal import zpk2tf
+from scipy.signal import freqz, freqs, zpk2tf
+from collections import defaultdict
+from utilities import build_repeated_item_list_from_dict
+
 
 
 class FilterType(Enum):
@@ -25,15 +26,13 @@ class ModelType(Enum):
 class Model:
     type: ModelType = field(init=False)
     filter: FilterType = field(init=False)
-    poles: list = field(init=False, default_factory=list)
-    zeros: list = field(init=False, default_factory=list)
+    poles: dict = field(init=False, default_factory=dict)
+    zeros: dict = field(init=False, default_factory=dict)
     freqs: list = field(init=False, repr=False, default_factory=list)
     complex_f_resp: list = field(init=False, repr=False, default_factory=list)
     num: list = field(init=False, repr=False, default_factory=list)
     denom: list = field(init=False, repr=False, default_factory=list)
 
-    # Manual zero pole still not implemented !!!!
-    # just for default json values !!!!
     def init_default_model(self, type: ModelType, filter: FilterType) -> None:
         self.type = type
         self.filter = filter
@@ -44,7 +43,9 @@ class Model:
         self.update_freq_resp()
 
     def update_num_denom(self) -> None:
-        self.num, self.denom = zpk2tf(self.zeros, self.poles, 1)
+        repeated_zeros_list = build_repeated_item_list_from_dict(self.zeros)
+        repeated_poles_list = build_repeated_item_list_from_dict(self.poles)
+        self.num, self.denom = zpk2tf(repeated_zeros_list, repeated_poles_list, 1)
 
     def update_freq_resp(self) -> None:
         if self.type == ModelType.DIGITAL:
@@ -58,8 +59,8 @@ class Model:
 
 
 def get_default_poles_zeros(type_str: str, filter_str: str):
-    complex_poles_list = []
-    complex_zeros_list = []
+    complex_poles_dict = defaultdict(int)
+    complex_zeros_dict = defaultdict(int)
     with open("config.json", "r") as file:
         cfg = json.load(file)
         model_cfg = cfg[type_str]
@@ -73,10 +74,13 @@ def get_default_poles_zeros(type_str: str, filter_str: str):
                 conj_num = np.conj(complex_num)
                 # If the pole is real there is no need to append conjugate value
                 if complex_num == conj_num:
-                    complex_poles_list.append(complex_num)
+                    # complex_poles_list.append(complex_num)
+                    complex_poles_dict[complex_num] +=1
                 else:
-                    complex_poles_list.append(complex_num)
-                    complex_poles_list.append(conj_num)
+                    # complex_poles_list.append(complex_num)
+                    complex_poles_dict[complex_num] += 1
+                    # complex_poles_list.append(conj_num)
+                    complex_poles_dict[conj_num] += 1
 
         # The reason for this if statement is that some default filters do not have any poles or zeros
         # therefore in json file there is actually None value corresponding to some poles or zeros
@@ -85,11 +89,14 @@ def get_default_poles_zeros(type_str: str, filter_str: str):
                 complex_num = complex_number_from_list(zero)
                 conj_num = np.conj(complex_num)
                 if complex_num == conj_num:
-                    complex_zeros_list.append(complex_num)
+                    # complex_zeros_list.append(complex_num)
+                    complex_zeros_dict[complex_num] +=1
                 else:
-                    complex_zeros_list.append(complex_num)
-                    complex_zeros_list.append(conj_num)
-    return complex_poles_list, complex_zeros_list
+                    # complex_zeros_list.append(complex_num)
+                    complex_zeros_dict[complex_num] += 1
+                    # complex_zeros_list.append(conj_num)
+                    complex_zeros_dict[conj_num] += 1
+    return complex_poles_dict, complex_zeros_dict
 
 
 # Here I assume 2 poles or zeros would be a 2*2 list
