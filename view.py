@@ -130,6 +130,10 @@ class SideFrame(customtkinter.CTkFrame):
 
         self.optionmenu_filter.grid(row=2, column=0, padx=10, pady=10, sticky="n")
 
+        self.animation_button = customtkinter.CTkButton(
+            master=self, text="Animation", command=self.presenter.change_manual_model
+        )
+        self.animation_button.grid(row=3, column=0, sticky="n")
 
 class ResponsePlotFrame:
     plots_2_display = []
@@ -226,7 +230,7 @@ class ManualPoleFrame(customtkinter.CTkScrollableFrame):
     poles_2_display = []
 
     def __init__(self, master, presenter: Presenter) -> None:
-        super().__init__(master, label_text="Poles [Real, Imaginary]")
+        super().__init__(master, label_text="Poles [Real, Imaginary, Fach]")
         # self.place(x=0, y=0, relwidth=0.15, relheight=1)
         self.presenter = presenter
         self.__init_pole_frame()
@@ -238,11 +242,11 @@ class ManualPoleFrame(customtkinter.CTkScrollableFrame):
 
     def display_poles(self) -> None:
         for i,pole in enumerate(self.presenter.model.poles.keys()):
-            entry_re = customtkinter.CTkEntry(self, placeholder_text=f"{np.real(pole)}")
+            entry_re = customtkinter.CTkEntry(self, placeholder_text=f"{np.real(pole)}",placeholder_text_color='white')
             entry_re.grid(row=i, column=0, padx=10, pady=(0, 20))
-            entry_im = customtkinter.CTkEntry(self, placeholder_text=f"{np.imag(pole)}")
+            entry_im = customtkinter.CTkEntry(self, placeholder_text=f"{np.imag(pole)}",placeholder_text_color='white')
             entry_im.grid(row=i, column=2, padx=10, pady=(0, 20))
-            entry_fach = customtkinter.CTkEntry(self, placeholder_text=f"{self.presenter.model.poles[pole]}")
+            entry_fach = customtkinter.CTkEntry(self, placeholder_text=f"{self.presenter.model.poles[pole]}",placeholder_text_color='white')
             entry_fach.grid(row=i, column=4, padx=10, pady=(0, 20))
             self.poles_2_display.append([entry_re, entry_im,entry_fach])# members are tkinter objects not numbers
 
@@ -271,7 +275,7 @@ class ManualZeroFrame(customtkinter.CTkScrollableFrame):
     # when we need to clear screen, all members of this list will be destroyed (destroy is how tkinter objects are deleted)
     zeros_2_display = []
     def __init__(self, master, presenter: Presenter) -> None:
-        super().__init__(master, label_text="Zeros [Real, Imaginary]")
+        super().__init__(master, label_text="Zeros [Real, Imaginary, Fach]")
         self.presenter = presenter
         self.__init_zero_frame()
 
@@ -282,11 +286,11 @@ class ManualZeroFrame(customtkinter.CTkScrollableFrame):
 
     def display_zeros(self) -> None:
         for i,zero in enumerate(self.presenter.model.zeros.keys()):
-            entry_re = customtkinter.CTkEntry(self, placeholder_text=f"{np.real(zero)}")
+            entry_re = customtkinter.CTkEntry(self, placeholder_text=f"{np.real(zero)}",placeholder_text_color='white')
             entry_re.grid(row=i, column=0, padx=10, pady=(0, 20))
-            entry_im = customtkinter.CTkEntry(self, placeholder_text=f"{np.imag(zero)}")
+            entry_im = customtkinter.CTkEntry(self, placeholder_text=f"{np.imag(zero)}",placeholder_text_color='white')
             entry_im.grid(row=i, column=2, padx=10, pady=(0, 20))
-            entry_fach = customtkinter.CTkEntry(self, placeholder_text=f"{self.presenter.model.zeros[zero]}")
+            entry_fach = customtkinter.CTkEntry(self, placeholder_text=f"{self.presenter.model.zeros[zero]}",placeholder_text_color='white')
             entry_fach.grid(row=i, column=4, padx=10, pady=(0, 20))
             self.zeros_2_display.append([entry_re, entry_im,entry_fach]) # members are tkinter objects not numbers
         'below leaving 3 empty place holders for user to enter zeros manually'

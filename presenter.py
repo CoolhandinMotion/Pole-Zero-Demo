@@ -28,8 +28,6 @@ class Presenter:
         self.app.pole_frame.display_poles()
         self.app.zero_frame.display_zeros()
 
-    "here fach should be implemented"
-    "fach zero and fach negative should be handeled"
     def handle_manual_coordinates(self):
         for re_zero_entry, im_zero_entry,fach_zero_entry in self.app.zero_frame.zeros_2_display:
             if re_zero_entry.get() and im_zero_entry.get():
