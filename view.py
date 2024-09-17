@@ -133,7 +133,7 @@ class SideFrame(customtkinter.CTkFrame):
         self.animation_button = customtkinter.CTkButton(
             master=self, text="Animation", command=self.presenter.change_manual_model
         )
-        self.animation_button.grid(row=3, column=0, sticky="n")
+        self.animation_button.grid(row=3, column=0, sticky="s")
 
 class ResponsePlotFrame:
     plots_2_display = []
@@ -218,8 +218,10 @@ class EmptyCanvas(customtkinter.CTkCanvas):
             sticky="nsew",
         )
 
-    def canvas_shw_func(self, func) -> None:
-        fig, ax = func()
+    def canvas_shw_func(self, plotting_func) -> None:
+        """plotting_func here is actually a partial function that is made ready in utils file but called here in this function,
+        all partial functions intended for this usecase return fig,axes of a ready made pyplot plot that is here attached to a Tkinter canves"""
+        fig, ax = plotting_func()
         self.canvas = FigureCanvasTkAgg(fig, self)
         self.canvas.get_tk_widget().grid(sticky="nsew")
 

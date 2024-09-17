@@ -70,8 +70,10 @@ def create_z_plot(model):
     ax.set_title("Pole Zero map")
     for pole in model.poles.keys():
         ax.scatter(np.real(pole), np.imag(pole), marker="X", color="r", s=100)
+        ax.text(np.real(pole),np.imag(pole),f'x{model.poles[pole]}',ha='center',size='large')
     for zero in model.zeros.keys():
         ax.scatter(np.real(zero), np.imag(zero), marker="o", color="g", s=100)
+        ax.text(np.real(zero), np.imag(zero),f'x{model.zeros[zero]}',ha='center',size='large')
     return fig, ax
 
 
@@ -86,8 +88,10 @@ def create_s_plot(model):
     ax.set_title("Pole Zero map")
     for pole in model.poles.keys():
         ax.scatter(np.real(pole), np.imag(pole), marker="X", color="r", s=100)
+        ax.text(np.real(pole), np.imag(pole), f'x{model.poles[pole]}', ha='center',size='large')
     for zero in model.zeros.keys():
         ax.scatter(np.real(zero), np.imag(zero), marker="o", color="g", s=100)
+        ax.text(np.real(zero), np.imag(zero), f'x{model.zeros[zero]}', ha='center',size='large')
     return fig, ax
 
 
@@ -121,3 +125,4 @@ def create_analog_impulse_time_response(model):
     ax.set_ylabel("Amplitude")
     ax.set_title("Impulse time response")
     return fig, ax
+

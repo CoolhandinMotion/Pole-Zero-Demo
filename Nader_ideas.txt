@@ -1,0 +1,22 @@
+IMPORTANT: user should be allowed to put fach=0 to delete an entry !!!
+
+
+when number of zeros are greater than poles, it crashes, catch and throw proper error
+
+Also when pole location leads to instability throw proper error
+
+
+
+
+after closing the GUI window the code throws an error and does not halt automatically.
+
+A protocol Model need be constructed in utils.py module for type hints. functions get a model:Model argument
+and do stuff with the model attributes
+
+what is my  default sampling frequency in digital realm?
+
+can I have the bilinear transform in Digital realm?
+
+add step response also in utils module, then with a radio button key select it from GUI
+
+in view module, ResponsePlotFrame class, can i make update methods asynchronous

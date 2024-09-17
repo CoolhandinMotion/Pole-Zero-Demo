@@ -2,6 +2,63 @@ import matplotlib.pyplot as plt
 import numpy as np
 from model import Model, STRING_2_MODELTYPE, STRING_2_FILTERTYPE
 from view import App, get_initial_ui_values
+from customtkinter import CTkEntry
+from enum import Enum,auto
+# print(pole_zero_entry._placeholder_text)
+
+class EntryOperation(Enum):
+    ADDITION = auto()
+    MODIFICATION = auto()
+    DELETION = auto()
+    IGNORE = auto()
+
+def read_proper_number(number_string:str) -> float | None:
+    try:
+        num = float(number_string)
+        return num
+    except ValueError:
+        return None
+
+def handle_manual_entry(entry: list[CTkEntry,CTkEntry,CTkEntry]):
+    field_re_new = entry[0].get()
+    field_img_new = entry[1].get()
+    field_fach_new = entry[2].get()
+
+    field_re_old = entry[0]._placeholder_text
+    field_img_old = entry[1]._placeholder_text
+    field_fach_old = entry[2]._placeholder_text
+
+    if not any([field_re_new,field_img_new,field_fach_new]):
+        #means the entry field was left unfilled, no info was typed in, so we move on
+        return EntryOperation.IGNORE
+    #below are conditions were at least one entry was provided by the user
+
+    real = read_proper_number(field_re_new)
+    imaginary = read_proper_number(field_img_new)
+    fach = read_proper_number(field_fach_new)
+    #TODO: throw erros if ubstable poles are given
+    'addition of new pole/zero'
+    if all([field_re_old.isalpha(),field_img_old.isalpha(),field_fach_old.isalpha()]):
+        #a new entry that needs to be recorded.it means that there was only plain text placeholder before
+        #we can only record new pole/zero if real and imaginary parts are given, no default value for real and imaginary provided by software
+        if real and imaginary: #user gave proper inputs, if fach was not provided, default to one
+            if isinstance(fach,int):
+                if fach > 0:
+                    return EntryOperation.ADDITION
+            elif field_fach_new == "":
+                return EntryOperation.ADDITION
+    else:
+        #there were numbers written as placeholder, it is either modification or deletion
+        if fach ==0:
+            return EntryOperation.DELETION
+        elif any([real,imaginary]):
+            return EntryOperation.MODIFICATION #if user wants to change the coordinate, we modify. if wrong fach is also given, we ignore that part later
+        elif fach: # if user explicitly changes fach only, it needs to be strictly checked
+            if isinstance(fach,int):
+                if fach>0:
+                    return EntryOperation.MODIFICATION
+
+    return EntryOperation.IGNORE
 
 
 class Presenter:
@@ -44,7 +101,9 @@ class Presenter:
 
                 if fach == 0:
                     "delete the zero altogether, use continue keyword"
-                    ...
+                    "the zeros_2_display is not updated"
+                    self.model.zeros.pop(complex_num,None)
+                    self.model.zeros.pop(conj_num,None)
                 # If the zero is real there is no need to append conjugate value
                 if complex_num == conj_num:
                     self.model.zeros[complex_num] +=fach
@@ -54,6 +113,7 @@ class Presenter:
 
         for re_pole_entry, im_pole_entry,fach_pole_entry in self.app.pole_frame.poles_2_display:
             if re_pole_entry.get() and im_pole_entry.get():
+
                 complex_num = complex(
                     float(re_pole_entry.get()), float(im_pole_entry.get())
                 )
@@ -64,7 +124,11 @@ class Presenter:
                     fach = 1 if fach < 0 else int(fach)
                 except ValueError:
                     fach = 1
-
+                if fach == 0:
+                    "delete the zero altogether, use continue keyword"
+                    "the poles_2_display is not updated"
+                    self.model.poles.pop(complex_num,None)
+                    self.model.poles.pop(conj_num,None)
                 # If the pole is real there is no need to append conjugate value
                 if complex_num == conj_num:
                     self.model.poles[complex_num] +=fach
