@@ -129,3 +129,7 @@ def create_analog_impulse_time_response(model):
 def get_complex_number_from_list(num_list:list[float,float]) -> complex:
     assert len(num_list) == 2, "Complex number not in right format"
     return complex(num_list[0], num_list[1])
+
+def s_plot_animation():
+    # ax.set_ylim([-4, 4])
+    ...

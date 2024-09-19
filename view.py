@@ -27,8 +27,8 @@ app_geometry = (750, 750)
 
 
 def get_initial_ui_values():
-    return model_menu_values[0], filter_menu_values[0]
-
+    # return model_menu_values[0], filter_menu_values[0]
+    return model_menu_values[1], filter_menu_values[-1]
 
 @dataclass
 class Model(Protocol):
@@ -199,6 +199,7 @@ class ResponsePlotFrame:
 
 
 class EmptyCanvas(customtkinter.CTkCanvas):
+    """used to create space for matplotlib plots to latch on to, 4 of these will be used throughout code"""
     canvases_2_display = []
 
     def __init__(self, master, presenter, grid_row, grid_column, span) -> None:
