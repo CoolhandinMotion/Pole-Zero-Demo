@@ -47,7 +47,6 @@ def handle_manual_entry(entry: list[CTkEntry,CTkEntry,CTkEntry])-> tuple[EntryOp
     field_re_new = entry[0].get()
     field_img_new = entry[1].get()
     field_fach_new = entry[2].get()
-
     field_re_old = entry[0]._placeholder_text
     field_img_old = entry[1]._placeholder_text
     field_fach_old = entry[2]._placeholder_text
