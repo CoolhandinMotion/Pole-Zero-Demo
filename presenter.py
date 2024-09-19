@@ -120,10 +120,12 @@ class Presenter:
             decision, decision_dict = handle_manual_entry(zero_entry)
             if decision == EntryOperation.DELETION:
                 self.model.remove_zeros(decision_dict["deletion"].keys())
+                self.app.zero_frame.zeros_2_display.pop(i)
             elif decision == EntryOperation.ADDITION:
                 self.model.add_zeros(decision_dict["addition"])
             elif decision == EntryOperation.MODIFICATION:
                 self.model.remove_zeros(decision_dict["deletion"].keys())
+                self.app.zero_frame.zeros_2_display.pop(i)
                 self.model.add_zeros(decision_dict["addition"])
 
         all_pole_entries = self.app.pole_frame.poles_2_display.copy()
@@ -131,10 +133,12 @@ class Presenter:
             decision, decision_dict = handle_manual_entry(pole_entry)
             if decision == EntryOperation.DELETION:
                 self.model.remove_poles(decision_dict["deletion"].keys())
+                self.app.pole_frame.poles_2_display.pop(i)
             elif decision == EntryOperation.ADDITION:
                 self.model.add_poles(decision_dict["addition"])
             elif decision == EntryOperation.MODIFICATION:
                 self.model.remove_poles(decision_dict["deletion"].keys())
+                self.app.pole_frame.poles_2_display.pop(i)
                 self.model.add_poles(decision_dict["addition"])
 
         gc.collect()
