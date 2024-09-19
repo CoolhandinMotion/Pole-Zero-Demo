@@ -4,6 +4,7 @@ from model import Model, STRING_2_MODELTYPE, STRING_2_FILTERTYPE
 from view import App, get_initial_ui_values
 from customtkinter import CTkEntry
 from enum import Enum,auto
+import gc
 # print(pole_zero_entry._placeholder_text)
 
 class EntryOperation(Enum):
@@ -19,7 +20,30 @@ def read_proper_number(number_string:str) -> float | None:
     except ValueError:
         return None
 
-def handle_manual_entry(entry: list[CTkEntry,CTkEntry,CTkEntry]):
+def get_proper_fach(fach:str) -> int|None:
+    if fach == "":
+        return 1
+    fach = read_proper_number(fach)
+    if not fach is None and fach >= 0:
+            return int(fach)
+    return None
+
+
+
+
+def complex_and_conj_fach_dict(real:float,imaginary:float,fach:int | None) -> dict[complex,int]:
+    """this function receives a real and imaginary part of a complex number, checks whether it is located on the real axis
+    and returns a dictionary containing fach for complex and complex conjugate (if conjugate is different from number itself)"""
+
+    complex_num = complex(real,imaginary)
+    conj_num = np.conj(complex_num)
+    if conj_num == complex_num:
+        decision_dict = {complex_num: fach}
+    else:
+        decision_dict = {complex_num: fach, conj_num: fach}
+    return decision_dict
+
+def handle_manual_entry(entry: list[CTkEntry,CTkEntry,CTkEntry])-> tuple[EntryOperation,dict]:
     field_re_new = entry[0].get()
     field_img_new = entry[1].get()
     field_fach_new = entry[2].get()
@@ -30,35 +54,39 @@ def handle_manual_entry(entry: list[CTkEntry,CTkEntry,CTkEntry]):
 
     if not any([field_re_new,field_img_new,field_fach_new]):
         #means the entry field was left unfilled, no info was typed in, so we move on
-        return EntryOperation.IGNORE
+        return EntryOperation.IGNORE, {}
     #below are conditions were at least one entry was provided by the user
 
-    real = read_proper_number(field_re_new)
-    imaginary = read_proper_number(field_img_new)
-    fach = read_proper_number(field_fach_new)
+    new_real = read_proper_number(field_re_new)
+    new_img = read_proper_number(field_img_new)
+    fach = get_proper_fach(field_fach_new)
     #TODO: throw erros if ubstable poles are given
     'addition of new pole/zero'
     if all([field_re_old.isalpha(),field_img_old.isalpha(),field_fach_old.isalpha()]):
         #a new entry that needs to be recorded.it means that there was only plain text placeholder before
         #we can only record new pole/zero if real and imaginary parts are given, no default value for real and imaginary provided by software
-        if real and imaginary: #user gave proper inputs, if fach was not provided, default to one
-            if isinstance(fach,int):
-                if fach > 0:
-                    return EntryOperation.ADDITION
-            elif field_fach_new == "":
-                return EntryOperation.ADDITION
+        if new_real and new_img: #user gave proper inputs, if fach was not provided, default to one
+            if fach and fach >0:
+                addition_dict = complex_and_conj_fach_dict(real=new_real,imaginary=new_img,fach=fach)
+                return EntryOperation.ADDITION,{"addition":addition_dict}
+
     else:
+        'modification/deletion'
         #there were numbers written as placeholder, it is either modification or deletion
         if fach ==0:
-            return EntryOperation.DELETION
-        elif any([real,imaginary]):
-            return EntryOperation.MODIFICATION #if user wants to change the coordinate, we modify. if wrong fach is also given, we ignore that part later
-        elif fach: # if user explicitly changes fach only, it needs to be strictly checked
-            if isinstance(fach,int):
-                if fach>0:
-                    return EntryOperation.MODIFICATION
+            #deleting an already existing pole/zero becasue fach was set to zero
+            deletion_dict = complex_and_conj_fach_dict(real=float(field_re_old),imaginary=float(field_img_old),fach=None)
+            return EntryOperation.DELETION, {"deletion":deletion_dict}
 
-    return EntryOperation.IGNORE
+        #modification means having previous values as default, if not provided by user, use default values
+        new_real = new_real if new_real else float(field_re_old)
+        new_img = new_img if new_img else float(field_img_old)
+        fach = fach if fach not in [None,1] else int(field_fach_old)
+        addition_dict = complex_and_conj_fach_dict(real=new_real, imaginary=new_img, fach=fach)
+        deletion_dict = complex_and_conj_fach_dict(real=float(field_re_old), imaginary=float(field_img_old), fach=None)
+        return EntryOperation.MODIFICATION, {"addition": addition_dict, "deletion": deletion_dict}
+
+    return EntryOperation.IGNORE, {}
 
 
 class Presenter:
@@ -80,61 +108,36 @@ class Presenter:
             self.app.zero_frame.wipe_zero_display()
             self.app.pole_frame.wipe_pole_display()
         except Exception:
-            TODO: "Throw proper Error"
+            ...
+            # "Throw proper Error"
         self.app.response_plot_frame.refresh_plot_frame()
         self.app.pole_frame.display_poles()
         self.app.zero_frame.display_zeros()
 
     def handle_manual_coordinates(self):
-        for re_zero_entry, im_zero_entry,fach_zero_entry in self.app.zero_frame.zeros_2_display:
-            if re_zero_entry.get() and im_zero_entry.get():
-                complex_num = complex(
-                    float(re_zero_entry.get()), float(im_zero_entry.get())
-                )
-                conj_num = np.conj(complex_num)
-                fach = fach_zero_entry.get()
-                try: #default fach value is 1 if user makes a mistake
-                    fach = float(fach)
-                    fach = 1 if fach < 0 else int(fach)
-                except ValueError:
-                    fach = 1
+        all_zero_entries = self.app.zero_frame.zeros_2_display.copy()
+        for i,zero_entry in enumerate(all_zero_entries):
+            decision, decision_dict = handle_manual_entry(zero_entry)
+            if decision == EntryOperation.DELETION:
+                self.model.remove_zeros(decision_dict["deletion"].keys())
+            elif decision == EntryOperation.ADDITION:
+                self.model.add_zeros(decision_dict["addition"])
+            elif decision == EntryOperation.MODIFICATION:
+                self.model.remove_zeros(decision_dict["deletion"].keys())
+                self.model.add_zeros(decision_dict["addition"])
 
-                if fach == 0:
-                    "delete the zero altogether, use continue keyword"
-                    "the zeros_2_display is not updated"
-                    self.model.zeros.pop(complex_num,None)
-                    self.model.zeros.pop(conj_num,None)
-                # If the zero is real there is no need to append conjugate value
-                if complex_num == conj_num:
-                    self.model.zeros[complex_num] +=fach
-                else:
-                    self.model.zeros[complex_num] +=fach
-                    self.model.zeros[conj_num] += fach
+        all_pole_entries = self.app.pole_frame.poles_2_display.copy()
+        for i, pole_entry in enumerate(all_pole_entries):
+            decision, decision_dict = handle_manual_entry(pole_entry)
+            if decision == EntryOperation.DELETION:
+                self.model.remove_poles(decision_dict["deletion"].keys())
+            elif decision == EntryOperation.ADDITION:
+                self.model.add_poles(decision_dict["addition"])
+            elif decision == EntryOperation.MODIFICATION:
+                self.model.remove_poles(decision_dict["deletion"].keys())
+                self.model.add_poles(decision_dict["addition"])
 
-        for re_pole_entry, im_pole_entry,fach_pole_entry in self.app.pole_frame.poles_2_display:
-            if re_pole_entry.get() and im_pole_entry.get():
-
-                complex_num = complex(
-                    float(re_pole_entry.get()), float(im_pole_entry.get())
-                )
-                conj_num = np.conj(complex_num)
-                fach = fach_pole_entry.get()
-                try:#default fach value is 1 if user makes a mistake
-                    fach = float(fach)
-                    fach = 1 if fach < 0 else int(fach)
-                except ValueError:
-                    fach = 1
-                if fach == 0:
-                    "delete the zero altogether, use continue keyword"
-                    "the poles_2_display is not updated"
-                    self.model.poles.pop(complex_num,None)
-                    self.model.poles.pop(conj_num,None)
-                # If the pole is real there is no need to append conjugate value
-                if complex_num == conj_num:
-                    self.model.poles[complex_num] +=fach
-                else:
-                    self.model.poles[complex_num] += fach
-                    self.model.poles[conj_num] += fach
+        gc.collect()
 
     def change_manual_model(self):
         self.handle_manual_coordinates()

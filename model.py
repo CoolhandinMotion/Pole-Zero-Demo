@@ -4,7 +4,7 @@ import json
 import numpy as np
 from scipy.signal import freqz, freqs, zpk2tf
 from collections import defaultdict
-from utilities import build_repeated_item_list_from_dict
+from utilities import build_repeated_item_list_from_dict,get_complex_number_from_list
 
 
 
@@ -26,8 +26,8 @@ class ModelType(Enum):
 class Model:
     type: ModelType = field(init=False)
     filter: FilterType = field(init=False)
-    poles: dict = field(init=False, default_factory=dict)
-    zeros: dict = field(init=False, default_factory=dict)
+    poles: dict[complex,int] = field(init=False, default_factory=dict)
+    zeros: dict[complex,int] = field(init=False, default_factory=dict)
     freqs: list = field(init=False, repr=False, default_factory=list)
     complex_f_resp: list = field(init=False, repr=False, default_factory=list)
     num: list = field(init=False, repr=False, default_factory=list)
@@ -53,6 +53,19 @@ class Model:
         elif self.type == ModelType.ANALOG:
             self.freqs, self.complex_f_resp = freqs(self.num, self.denom, worN=1000)
 
+    def remove_poles(self,pole_keys:list[complex]) -> None:
+        for key in pole_keys:
+            self.poles.pop(key,None)
+
+    def add_poles(self,poles_dict:dict[complex,int]) -> None:
+        self.poles = {**self.poles,**poles_dict}
+
+    def remove_zeros(self,zero_keys:list[complex]) -> None:
+        for key in zero_keys:
+            self.zeros.pop(key,None)
+
+    def add_zeros(self,zeros_dict:dict[complex,int]) -> None:
+        self.zeros = {**self.zeros,**zeros_dict}
 
 # the reason for ModelType.name and FilterType.name is that only string is json serializable so convertion is necessary
 # to load the setting from config.json file
@@ -70,7 +83,7 @@ def get_default_poles_zeros(type_str: str, filter_str: str):
         # exactly once
         if filter_cfg["poles"]:
             for pole in filter_cfg["poles"]:
-                complex_num = complex_number_from_list(pole)
+                complex_num = get_complex_number_from_list(pole)
                 conj_num = np.conj(complex_num)
                 # If the pole is real there is no need to append conjugate value
                 if complex_num == conj_num:
@@ -83,7 +96,7 @@ def get_default_poles_zeros(type_str: str, filter_str: str):
         # therefore in json file there is actually None value corresponding to some poles or zeros
         if filter_cfg["zeros"]:
             for zero in filter_cfg["zeros"]:
-                complex_num = complex_number_from_list(zero)
+                complex_num = get_complex_number_from_list(zero)
                 conj_num = np.conj(complex_num)
                 if complex_num == conj_num:
                     complex_zeros_dict[complex_num] +=1
@@ -96,9 +109,6 @@ def get_default_poles_zeros(type_str: str, filter_str: str):
 # Here I assume 2 poles or zeros would be a 2*2 list
 # conjugates are not accounted for in the list, they will be generated automatically
 # so a real system with 4 conjugate poles would be saved in config file as a  2*2 list of float
-def complex_number_from_list(num_list):
-    assert len(num_list) == 2, "Complex number not in right format"
-    return complex(num_list[0], num_list[1])
 
 
 STRING_2_MODELTYPE = {"Analog": ModelType.ANALOG, "Digital": ModelType.DIGITAL}

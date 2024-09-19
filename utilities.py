@@ -126,3 +126,6 @@ def create_analog_impulse_time_response(model):
     ax.set_title("Impulse time response")
     return fig, ax
 
+def get_complex_number_from_list(num_list:list[float,float]) -> complex:
+    assert len(num_list) == 2, "Complex number not in right format"
+    return complex(num_list[0], num_list[1])
