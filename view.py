@@ -6,7 +6,7 @@ import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import utilities
 from functools import partial
-
+# TODO check this link for clearing canvas instead of reconstructing an instance: https://stackoverflow.com/questions/64273113/how-to-refresh-figurecanvastkagg-continuously-in-tkinter
 # TODO: "a button for save as PDF in the Side Frame"
 # TODO: "Animation mode as requested by professor"
 
@@ -140,11 +140,9 @@ class ResponsePlotFrame:
         self.master = master
         self.presenter = presenter
         self.span = span
-        self.refresh_plot_frame()
+        self.__populate_plot_frame()
 
-    def refresh_plot_frame(self) -> None:
-        self.__wipe_plot_frame()
-
+    def __populate_plot_frame(self) -> None:
         # generates pole zero map on top left corner of response frame
         self.canvas1 = EmptyCanvas(
             self.master, self.presenter, grid_row=0, grid_column=1, span=self.span
@@ -169,26 +167,22 @@ class ResponsePlotFrame:
         )
         self.plots_2_display.append(self.canvas4)
 
-        self.update_plot()
+        self.refresh_plot_frame()
 
-    def update_plot(self) -> None:
-        # temporary partial function that when executes, generates proper pole zero map
-        my_func = partial(utilities.create_freq_domain_plot, self.presenter.model)
-        self.canvas1.canvas_shw_func(my_func)
+    def refresh_plot_frame(self) -> None:
+        # temporary partial function that when executes, generates proper time, frequency and phase response
+        canvas_2_plot_dict = {self.canvas1:partial(utilities.create_freq_domain_plot, self.presenter.model),
+                              self.canvas2:partial(utilities.create_time_plot, self.presenter.model),
+                              self.canvas3:partial(utilities.create_freq_resp_plot, self.presenter.model),
+                              self.canvas4:partial(utilities.create_phase_resp_plot, self.presenter.model)
+        }
 
-        # temporary partial function that when executes, generates proper time response
-        my_func = partial(utilities.create_time_plot, self.presenter.model)
-        self.canvas2.canvas_shw_func(my_func)
+        for canvas,partial_func in canvas_2_plot_dict.items():
+            canvas.canvas_shw_func(partial_func)
 
-        # temporary partial function that when executes, generates proper frequency response plot
-        my_func = partial(utilities.create_freq_resp_plot, self.presenter.model)
-        self.canvas3.canvas_shw_func(my_func)
-
-        # temporary partial function that when executes, generates proper phase response
-        my_func = partial(utilities.create_phase_resp_plot, self.presenter.model)
-        self.canvas4.canvas_shw_func(my_func)
 
     def __wipe_plot_frame(self) -> None:
+        #not currently used, it destroys all the frames containing matplotlib objects in ResponseFrame
         plots_list = self.plots_2_display.copy()
         for plot in plots_list:
             plot.destroy()
@@ -221,9 +215,12 @@ class EmptyCanvas(customtkinter.CTkCanvas):
     def canvas_shw_func(self, plotting_func) -> None:
         """plotting_func here is actually a partial function that is made ready in utils file but called here in this function,
         all partial functions intended for this usecase return fig,axes of a ready made pyplot plot that is here attached to a Tkinter canves"""
+        if self.canvas:
+            self.canvas.get_tk_widget().destroy()
         fig, ax = plotting_func()
         self.canvas = FigureCanvasTkAgg(fig, self)
         self.canvas.get_tk_widget().grid(sticky="nsew")
+
 
 
 class ManualPoleNumberFrame(customtkinter.CTkScrollableFrame):
