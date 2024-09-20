@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from typing import Protocol
 from scipy import signal
+import matplotlib.animation as animation
 
 # TODO: "implement step response as well using  t,y = signal.dstep(sys3,n=30)"
 # TODO: "show Fach in int close to x or o pointer on S or Z plane"
@@ -49,10 +50,12 @@ def create_unit_circle():
     a = radius * np.cos(theta)
     b = radius * np.sin(theta)
     fig, ax = plt.subplots(figsize=all_fig_size)
+    # ax.set_axis_off()
+
     ax.grid()
+    ax.plot(a, b, c="b")
     ax.axhline(y=0, color="k")
     ax.axvline(x=0, color="k")
-    ax.plot(a, b, c="b")
     return fig, ax
 
 
@@ -74,6 +77,9 @@ def create_z_plot(model):
     for zero in model.zeros.keys():
         ax.scatter(np.real(zero), np.imag(zero), marker="o", color="g", s=100)
         ax.text(np.real(zero), np.imag(zero),f'x{model.zeros[zero]}',ha='center',size='large')
+
+    # children = ax._children
+    # print(children)
     return fig, ax
 
 
@@ -83,8 +89,8 @@ def create_s_plot(model):
     ax.grid()
     ax.set_ylim([-4, 4])
     ax.grid()
-    ax.axhline(y=0, color="k")
     ax.axvline(x=0, color="k")
+    ax.axhline(y=0, color="k")
     ax.set_title("Pole Zero map")
     for pole in model.poles.keys():
         ax.scatter(np.real(pole), np.imag(pole), marker="X", color="r", s=100)
@@ -92,6 +98,10 @@ def create_s_plot(model):
     for zero in model.zeros.keys():
         ax.scatter(np.real(zero), np.imag(zero), marker="o", color="g", s=100)
         ax.text(np.real(zero), np.imag(zero), f'x{model.zeros[zero]}', ha='center',size='large')
+
+
+    children = ax._children
+    print(children)
     return fig, ax
 
 

@@ -2,7 +2,7 @@ from enum import Enum, auto
 from dataclasses import dataclass, field
 import json
 import numpy as np
-from scipy.signal import freqz, freqs, zpk2tf
+from scipy.signal import freqz, freqs, zpk2tf, TransferFunction
 from collections import defaultdict
 from utilities import build_repeated_item_list_from_dict,get_complex_number_from_list
 
@@ -32,6 +32,10 @@ class Model:
     complex_f_resp: list = field(init=False, repr=False, default_factory=list)
     num: list = field(init=False, repr=False, default_factory=list)
     denom: list = field(init=False, repr=False, default_factory=list)
+    # I can use the below attributes to cache results for making it a bit faster
+    digital_sampling_time: None| float = field(init=False)
+    transfer_function:TransferFunction = field(init=False,repr=False)
+
 
     def init_default_model(self, type: ModelType, filter: FilterType) -> None:
         self.type = type

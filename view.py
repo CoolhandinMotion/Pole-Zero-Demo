@@ -2,6 +2,8 @@ from dataclasses import dataclass
 import customtkinter
 import tkinter as tk
 from typing import Protocol
+import matplotlib.animation as animation
+import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import utilities
@@ -178,7 +180,7 @@ class ResponsePlotFrame:
         }
 
         for canvas,partial_func in canvas_2_plot_dict.items():
-            canvas.canvas_shw_func(partial_func)
+            canvas.canvas_shw_plt(partial_func)
 
 
     def __wipe_plot_frame(self) -> None:
@@ -192,8 +194,6 @@ class ResponsePlotFrame:
 
 class EmptyCanvas(customtkinter.CTkCanvas):
     """used to create space for matplotlib plots to latch on to, 4 of these will be used throughout code"""
-    canvases_2_display = []
-
     def __init__(self, master, presenter, grid_row, grid_column, span) -> None:
         super().__init__(master)
         self.canvas = None
@@ -212,7 +212,8 @@ class EmptyCanvas(customtkinter.CTkCanvas):
             sticky="nsew",
         )
 
-    def canvas_shw_func(self, plotting_func) -> None:
+
+    def canvas_shw_plt(self, plotting_func) -> None:
         """plotting_func here is actually a partial function that is made ready in utils file but called here in this function,
         all partial functions intended for this usecase return fig,axes of a ready made pyplot plot that is here attached to a Tkinter canves"""
         if self.canvas:
@@ -220,6 +221,18 @@ class EmptyCanvas(customtkinter.CTkCanvas):
         fig, ax = plotting_func()
         self.canvas = FigureCanvasTkAgg(fig, self)
         self.canvas.get_tk_widget().grid(sticky="nsew")
+
+    def canvas_shw_animation(self, animation_func,thumbnail_func) -> None:
+        """plotting_func here is actually a partial function that is made ready in utils file but called here in this function,
+        all partial functions intended for this usecase return fig,axes of a ready made pyplot plot that is here attached to a Tkinter canves"""
+        if self.canvas:
+            self.canvas.get_tk_widget().destroy()
+        fig, ax = thumbnail_func()
+        line_2d = ax._children[0]
+        self.canvas = FigureCanvasTkAgg(fig, self)
+        self.canvas.get_tk_widget().grid(sticky="nsew")
+
+
 
 
 
