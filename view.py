@@ -1,9 +1,7 @@
 from dataclasses import dataclass
-
 import customtkinter
 import tkinter as tk
 from typing import Protocol
-
 import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import utilities
@@ -53,8 +51,8 @@ class App(customtkinter.CTk):
         # configure window
         self.response_plot_frame = None
         self.side_frame = None
-        self.pole_frame = None
-        self.zero_frame = None
+        self.pole_number_frame = None
+        self.zero_number_frame = None
         self.title("Digital Signal Processing Demo")
         self.geometry(f"{app_geometry[0]}x{app_geometry[0]}")
         self.minsize(*app_geometry)
@@ -67,10 +65,10 @@ class App(customtkinter.CTk):
         # self.plot_frame = PlotFrame(self, presenter)
         'The ResponsePlotFrame itself consists of 4 different canvas that host different plots'
         self.response_plot_frame = ResponsePlotFrame(self, presenter, 1)
-        'pole_frame is a place where user can add manual poles to the filter'
-        self.pole_frame = ManualPoleFrame(self, presenter)
-        'zero_frame is a place where user can add manual zeros to the filter'
-        self.zero_frame = ManualZeroFrame(self, presenter)
+        'pole_number_frame is a place where user can add manual poles to the filter'
+        self.pole_number_frame = ManualPoleNumberFrame(self, presenter)
+        'zero_number_frame is a place where user can add manual zeros to the filter'
+        self.zero_number_frame = ManualZeroNumberFrame(self, presenter)
 
         'Below we define buttons that do not belong to any frame but necessary for functionality of the whole program'
         'button below is the confirmation button that users clicks on to confirm addition of new poles or zeros'
@@ -105,9 +103,9 @@ class SideFrame(customtkinter.CTkFrame):
         self.logo_label.grid(
             row=0, column=0, columnspan=2, padx=20, pady=20, sticky="n"
         )
-
+        initial_model_name_for_display_button = get_initial_ui_values()[0]
         value_inside = tk.StringVar()
-        value_inside.set(model_menu_values[0])
+        value_inside.set(initial_model_name_for_display_button)
 
         self.optionmenu_model = customtkinter.CTkOptionMenu(
             self,
@@ -117,9 +115,9 @@ class SideFrame(customtkinter.CTkFrame):
             command=self.presenter.change_default_model,
         )
         self.optionmenu_model.grid(row=1, column=0, padx=10, pady=20, sticky="n")
-
+        initial_filter_name_for_display_button = get_initial_ui_values()[1]
         value_inside = tk.StringVar()
-        value_inside.set(filter_menu_values[0])
+        value_inside.set(initial_filter_name_for_display_button)
         self.optionmenu_filter = customtkinter.CTkOptionMenu(
             self,
             dynamic_resizing=False,
@@ -204,6 +202,7 @@ class EmptyCanvas(customtkinter.CTkCanvas):
 
     def __init__(self, master, presenter, grid_row, grid_column, span) -> None:
         super().__init__(master)
+        self.canvas = None
         self.presenter = presenter
         self.grid_row = grid_row
         self.grid_column = grid_column
@@ -227,7 +226,7 @@ class EmptyCanvas(customtkinter.CTkCanvas):
         self.canvas.get_tk_widget().grid(sticky="nsew")
 
 
-class ManualPoleFrame(customtkinter.CTkScrollableFrame):
+class ManualPoleNumberFrame(customtkinter.CTkScrollableFrame):
     # list below stores ctkentry objects which are containers for numbers (real and imaginary part separately).
     # when we need to clear screen, all members of this list will be destroyed (destroy is how tkinter objects are deleted)
     poles_2_display = []
@@ -273,7 +272,7 @@ class ManualPoleFrame(customtkinter.CTkScrollableFrame):
         self.poles_2_display.clear()
 
 
-class ManualZeroFrame(customtkinter.CTkScrollableFrame):
+class ManualZeroNumberFrame(customtkinter.CTkScrollableFrame):
     # list below stores ctkentry objects which are containers for numbers (real and imaginary part separately).
     # when we need to clear screen, all members of this list will be destroyed (destroy is how tkinter objects are deleted)
     zeros_2_display = []

@@ -104,40 +104,40 @@ class Presenter:
         self.model.init_default_model(type=next_model_type, filter=next_filter_type)
         plt.close("all")
         try:
-            self.app.zero_frame.wipe_zero_display()
-            self.app.pole_frame.wipe_pole_display()
+            self.app.zero_number_frame.wipe_zero_display()
+            self.app.pole_number_frame.wipe_pole_display()
         except Exception:
             ...
             # "Throw proper Error"
         self.app.response_plot_frame.refresh_plot_frame()
-        self.app.pole_frame.display_poles()
-        self.app.zero_frame.display_zeros()
+        self.app.pole_number_frame.display_poles()
+        self.app.zero_number_frame.display_zeros()
 
     def handle_manual_coordinates(self):
-        all_zero_entries = self.app.zero_frame.zeros_2_display.copy()
+        all_zero_entries = self.app.zero_number_frame.zeros_2_display.copy()
         for i,zero_entry in enumerate(all_zero_entries):
             decision, decision_dict = handle_manual_entry(zero_entry)
             if decision == EntryOperation.DELETION:
                 self.model.remove_zeros(decision_dict["deletion"].keys())
-                self.app.zero_frame.zeros_2_display.pop(i)
+                self.app.zero_number_frame.zeros_2_display.pop(i)
             elif decision == EntryOperation.ADDITION:
                 self.model.add_zeros(decision_dict["addition"])
             elif decision == EntryOperation.MODIFICATION:
                 self.model.remove_zeros(decision_dict["deletion"].keys())
-                self.app.zero_frame.zeros_2_display.pop(i)
+                self.app.zero_number_frame.zeros_2_display.pop(i)
                 self.model.add_zeros(decision_dict["addition"])
 
-        all_pole_entries = self.app.pole_frame.poles_2_display.copy()
+        all_pole_entries = self.app.pole_number_frame.poles_2_display.copy()
         for i, pole_entry in enumerate(all_pole_entries):
             decision, decision_dict = handle_manual_entry(pole_entry)
             if decision == EntryOperation.DELETION:
                 self.model.remove_poles(decision_dict["deletion"].keys())
-                self.app.pole_frame.poles_2_display.pop(i)
+                self.app.pole_number_frame.poles_2_display.pop(i)
             elif decision == EntryOperation.ADDITION:
                 self.model.add_poles(decision_dict["addition"])
             elif decision == EntryOperation.MODIFICATION:
                 self.model.remove_poles(decision_dict["deletion"].keys())
-                self.app.pole_frame.poles_2_display.pop(i)
+                self.app.pole_number_frame.poles_2_display.pop(i)
                 self.model.add_poles(decision_dict["addition"])
 
         gc.collect()
@@ -146,12 +146,12 @@ class Presenter:
         self.handle_manual_coordinates()
         self.model.update_num_denom()
         self.model.update_freq_resp()
-        self.app.zero_frame.wipe_zero_display()
-        self.app.pole_frame.wipe_pole_display()
+        self.app.zero_number_frame.wipe_zero_display()
+        self.app.pole_number_frame.wipe_pole_display()
         plt.close("all")
         self.app.response_plot_frame.refresh_plot_frame()
-        self.app.pole_frame.display_poles()
-        self.app.zero_frame.display_zeros()
+        self.app.pole_number_frame.display_poles()
+        self.app.zero_number_frame.display_zeros()
 
     def run(self):
         initial_model_type, initial_filter_type = get_initial_ui_values()
