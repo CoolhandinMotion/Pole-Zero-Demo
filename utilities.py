@@ -5,7 +5,7 @@ from typing import Protocol, Callable
 from scipy import signal
 import matplotlib.animation as animation
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from customtkinter import CTkCanvas
+
 # TODO: "implement step response as well using  t,y = signal.dstep(sys3,n=30)"
 # TODO: "show Fach in int close to x or o pointer on S or Z plane"
 side_frame_width = 140
@@ -106,9 +106,9 @@ def create_s_plot(model):
         ax.scatter(np.real(zero), np.imag(zero), marker="o", color="g", s=100)
         ax.text(np.real(zero), np.imag(zero), f'x{model.zeros[zero]}', ha='center',size='large')
 
-
-    children = ax._children
-    print(children)
+    #
+    # children = ax._children
+    # print(children)
     return fig, ax
 
 

@@ -64,9 +64,10 @@ def handle_manual_entry(entry: list[CTkEntry,CTkEntry,CTkEntry])-> tuple[EntryOp
     if all([field_re_old.isalpha(),field_img_old.isalpha(),field_fach_old.isalpha()]):
         #a new entry that needs to be recorded.it means that there was only plain text placeholder before
         #we can only record new pole/zero if real and imaginary parts are given, no default value for real and imaginary provided by software
-        if new_real and new_img: #user gave proper inputs, if fach was not provided, default to one
+        if not new_real is None  and  not new_img is None: #user gave proper inputs, if fach was not provided, default to one
             if fach and fach >0:
                 addition_dict = complex_and_conj_fach_dict(real=new_real,imaginary=new_img,fach=fach)
+                print(f"This is your dict {addition_dict}")
                 return EntryOperation.ADDITION,{"addition":addition_dict}
 
     else:
