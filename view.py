@@ -187,6 +187,7 @@ class ResponsePlotFrame:
     def refresh_plot_frame(self) -> None:
         # first refresh the partial functions for each canvas, then plot
         self.__update_canvas_partial_function_plotters()
+        plt.close("all")
         for canvas,partial_func in self.canvas_2_partial_func_plotter_map.items():
             utilities.display_canvas_plot(plotting_canvas=canvas,plotting_func=partial_func)
 
