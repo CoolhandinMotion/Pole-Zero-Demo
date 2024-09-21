@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 import numpy as np
 import matplotlib.pyplot as plt
-from typing import Protocol
+from typing import Protocol, Callable
 from scipy import signal
 import matplotlib.animation as animation
-
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from customtkinter import CTkCanvas
 # TODO: "implement step response as well using  t,y = signal.dstep(sys3,n=30)"
 # TODO: "show Fach in int close to x or o pointer on S or Z plane"
 side_frame_width = 140
@@ -12,6 +13,12 @@ all_fig_size = (5, 5)
 theta = np.linspace(0, 2 * np.pi, 150)
 radius = 1
 grid_division = 11
+
+
+@dataclass
+class PlottingCanvas(Protocol):
+    canvas: FigureCanvasTkAgg
+
 
 def build_repeated_item_list_from_dict(dictionary:dict) -> list:
     repeated_list = [key for key, value in dictionary.items() for i in range(value)]
@@ -140,6 +147,30 @@ def get_complex_number_from_list(num_list:list[float,float]) -> complex:
     assert len(num_list) == 2, "Complex number not in right format"
     return complex(num_list[0], num_list[1])
 
-def s_plot_animation():
-    # ax.set_ylim([-4, 4])
-    ...
+
+
+def display_canvas_plot(plotting_canvas: PlottingCanvas,plotting_func:Callable):
+    if plotting_canvas.canvas:
+        plotting_canvas.canvas.get_tk_widget().destroy()
+    fig, ax = plotting_func()
+    plotting_canvas.canvas = FigureCanvasTkAgg(fig, plotting_canvas)
+    plotting_canvas.canvas.get_tk_widget().grid(sticky="nsew")
+
+# def s_plot_animation(i,ax_line_2d_obj,canvas, max_frame,model):
+#
+#     if i == max_frame:
+#         # fig,ax = thumbnail_func()
+#         canvas.figure = fig
+#
+#     ax_line_2d_obj.set_ydata(np.sin(x + i / 10.0))  # update the data
+#     return ax_line_2d_obj,
+#     # ax.set_ylim([-4, 4])
+#     ...
+
+# def analog_freq_domain_animation(self, animation_func,thumbnail_func) -> None:
+#     if self.canvas:
+#         self.canvas.get_tk_widget().destroy()
+#     fig, ax = thumbnail_func()
+#     line_2d = ax._children[0]
+#     self.canvas = FigureCanvasTkAgg(fig, self)
+#     self.canvas.get_tk_widget().grid(sticky="nsew")

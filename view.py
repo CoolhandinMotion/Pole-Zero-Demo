@@ -8,6 +8,7 @@ import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import utilities
 from functools import partial
+
 # TODO check this link for clearing canvas instead of reconstructing an instance: https://stackoverflow.com/questions/64273113/how-to-refresh-figurecanvastkagg-continuously-in-tkinter
 # TODO: "a button for save as PDF in the Side Frame"
 # TODO: "Animation mode as requested by professor"
@@ -139,48 +140,55 @@ class ResponsePlotFrame:
     plots_2_display = []
 
     def __init__(self, master, presenter: Presenter, span) -> None:
+        self.canvas_2_partial_func_plotter_map = None
         self.master = master
         self.presenter = presenter
         self.span = span
         self.__populate_plot_frame()
+        self.__update_canvas_partial_function_plotters()
 
     def __populate_plot_frame(self) -> None:
         # generates pole zero map on top left corner of response frame
-        self.canvas1 = EmptyCanvas(
+        self.canvas_freq_domain = PlottingCanvas(
             self.master, self.presenter, grid_row=0, grid_column=1, span=self.span
         )
-        self.plots_2_display.append(self.canvas1)
+        self.plots_2_display.append(self.canvas_freq_domain)
 
         # generates time response on bottom left corner of response frame
-        self.canvas2 = EmptyCanvas(
+        self.canvas_time_domain = PlottingCanvas(
             self.master, self.presenter, grid_row=2, grid_column=1, span=self.span
         )
-        self.plots_2_display.append(self.canvas2)
+        self.plots_2_display.append(self.canvas_time_domain)
 
         # generates frequency on top right corner of response frame
-        self.canvas3 = EmptyCanvas(
+        self.canvas_freq_resp = PlottingCanvas(
             self.master, self.presenter, grid_row=0, grid_column=3, span=self.span
         )
-        self.plots_2_display.append(self.canvas3)
+        self.plots_2_display.append(self.canvas_freq_resp)
 
         # generates phase response on bottom right corner of response frame
-        self.canvas4 = EmptyCanvas(
+        self.canvas_phase_resp = PlottingCanvas(
             self.master, self.presenter, grid_row=2, grid_column=3, span=self.span
         )
-        self.plots_2_display.append(self.canvas4)
+
+        self.plots_2_display.append(self.canvas_phase_resp)
 
         self.refresh_plot_frame()
 
-    def refresh_plot_frame(self) -> None:
+    def __update_canvas_partial_function_plotters(self):
         # temporary partial function that when executes, generates proper time, frequency and phase response
-        canvas_2_plot_dict = {self.canvas1:partial(utilities.create_freq_domain_plot, self.presenter.model),
-                              self.canvas2:partial(utilities.create_time_plot, self.presenter.model),
-                              self.canvas3:partial(utilities.create_freq_resp_plot, self.presenter.model),
-                              self.canvas4:partial(utilities.create_phase_resp_plot, self.presenter.model)
+        # each time model changes in any way (fach, pole, zero, analog/digital) these partial functions are reconstructed
+        self.canvas_2_partial_func_plotter_map = {self.canvas_freq_domain:partial(utilities.create_freq_domain_plot, self.presenter.model),
+                              self.canvas_time_domain:partial(utilities.create_time_plot, self.presenter.model),
+                              self.canvas_freq_resp:partial(utilities.create_freq_resp_plot, self.presenter.model),
+                              self.canvas_phase_resp:partial(utilities.create_phase_resp_plot, self.presenter.model)
         }
 
-        for canvas,partial_func in canvas_2_plot_dict.items():
-            canvas.canvas_shw_plt(partial_func)
+    def refresh_plot_frame(self) -> None:
+        # first refresh the partial functions for each canvas, then plot
+        self.__update_canvas_partial_function_plotters()
+        for canvas,partial_func in self.canvas_2_partial_func_plotter_map.items():
+            utilities.display_canvas_plot(plotting_canvas=canvas,plotting_func=partial_func)
 
 
     def __wipe_plot_frame(self) -> None:
@@ -192,7 +200,7 @@ class ResponsePlotFrame:
         del plots_list
 
 
-class EmptyCanvas(customtkinter.CTkCanvas):
+class PlottingCanvas(customtkinter.CTkCanvas):
     """used to create space for matplotlib plots to latch on to, 4 of these will be used throughout code"""
     def __init__(self, master, presenter, grid_row, grid_column, span) -> None:
         super().__init__(master)
@@ -211,27 +219,6 @@ class EmptyCanvas(customtkinter.CTkCanvas):
             columnspan=self.span,
             sticky="nsew",
         )
-
-
-    def canvas_shw_plt(self, plotting_func) -> None:
-        """plotting_func here is actually a partial function that is made ready in utils file but called here in this function,
-        all partial functions intended for this usecase return fig,axes of a ready made pyplot plot that is here attached to a Tkinter canves"""
-        if self.canvas:
-            self.canvas.get_tk_widget().destroy()
-        fig, ax = plotting_func()
-        self.canvas = FigureCanvasTkAgg(fig, self)
-        self.canvas.get_tk_widget().grid(sticky="nsew")
-
-    def canvas_shw_animation(self, animation_func,thumbnail_func) -> None:
-        """plotting_func here is actually a partial function that is made ready in utils file but called here in this function,
-        all partial functions intended for this usecase return fig,axes of a ready made pyplot plot that is here attached to a Tkinter canves"""
-        if self.canvas:
-            self.canvas.get_tk_widget().destroy()
-        fig, ax = thumbnail_func()
-        line_2d = ax._children[0]
-        self.canvas = FigureCanvasTkAgg(fig, self)
-        self.canvas.get_tk_widget().grid(sticky="nsew")
-
 
 
 
