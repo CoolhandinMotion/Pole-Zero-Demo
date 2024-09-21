@@ -1,11 +1,12 @@
-from dataclasses import dataclass
+from dataclasses import dataclass,field
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import Protocol, Callable
 from scipy import signal
+from enum import Enum,auto
 import matplotlib.animation as animation
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
+from matplotlib.lines import Line2D
 # TODO: "implement step response as well using  t,y = signal.dstep(sys3,n=30)"
 # TODO: "show Fach in int close to x or o pointer on S or Z plane"
 side_frame_width = 140
@@ -14,17 +15,29 @@ theta = np.linspace(0, 2 * np.pi, 150)
 radius = 1
 grid_division = 11
 
+@dataclass
+class Model(Protocol):
+    type: Enum = field(init=False)
+    filter: Enum = field(init=False)
+    poles: dict[complex,int] = field(init=False, default_factory=dict)
+    zeros: dict[complex,int] = field(init=False, default_factory=dict)
+    freqs: list = field(init=False, repr=False, default_factory=list)
+    complex_f_resp: list = field(init=False, repr=False, default_factory=list)
+    num: list = field(init=False, repr=False, default_factory=list)
+    denom: list = field(init=False, repr=False, default_factory=list)
+
 
 @dataclass
 class PlottingCanvas(Protocol):
     canvas: FigureCanvasTkAgg
 
 
-def build_repeated_item_list_from_dict(dictionary:dict) -> list:
+def build_repeated_item_list_from_dict(dictionary: dict) -> list:
     repeated_list = [key for key, value in dictionary.items() for i in range(value)]
-    return  repeated_list
+    return repeated_list
 
-def create_freq_resp_plot(model):
+
+def create_freq_resp_plot(model:Model):
     frequencies, freq_complex_resp = model.freqs, model.complex_f_resp
     fig, ax = plt.subplots(figsize=all_fig_size)
     ax.grid()
@@ -38,7 +51,7 @@ def create_freq_resp_plot(model):
     return fig, ax
 
 
-def create_phase_resp_plot(model):
+def create_phase_resp_plot(model:Model):
     frequencies, freq_complex_resp = model.freqs, model.complex_f_resp
     fig, ax = plt.subplots(figsize=all_fig_size)
     ax.grid()
@@ -66,31 +79,31 @@ def create_unit_circle():
     return fig, ax
 
 
-def create_freq_domain_plot(model):
+def create_freq_domain_plot(model:Model):
     if model.type.name == "DIGITAL":
         return create_z_plot(model)
     elif model.type.name == "ANALOG":
         return create_s_plot(model)
 
 
-def create_z_plot(model):
+def create_z_plot(model:Model):
     assert model.type.name == "DIGITAL", "z plot only for descrete case"
     fig, ax = create_unit_circle()
     ax.grid()
     ax.set_title("Pole Zero map")
     for pole in model.poles.keys():
         ax.scatter(np.real(pole), np.imag(pole), marker="X", color="r", s=100)
-        ax.text(np.real(pole),np.imag(pole),f'x{model.poles[pole]}',ha='center',size='large')
+        ax.text(np.real(pole), np.imag(pole), f'x{model.poles[pole]}', ha='center', size='large')
     for zero in model.zeros.keys():
         ax.scatter(np.real(zero), np.imag(zero), marker="o", color="g", s=100)
-        ax.text(np.real(zero), np.imag(zero),f'x{model.zeros[zero]}',ha='center',size='large')
+        ax.text(np.real(zero), np.imag(zero), f'x{model.zeros[zero]}', ha='center', size='large')
 
     # children = ax._children
     # print(children)
     return fig, ax
 
 
-def create_s_plot(model):
+def create_s_plot(model:Model):
     assert model.type.name == "ANALOG", "S plot is only for continuous case"
     fig, ax = plt.subplots(figsize=all_fig_size)
     ax.grid()
@@ -101,10 +114,10 @@ def create_s_plot(model):
     ax.set_title("Pole Zero map")
     for pole in model.poles.keys():
         ax.scatter(np.real(pole), np.imag(pole), marker="X", color="r", s=100)
-        ax.text(np.real(pole), np.imag(pole), f'x{model.poles[pole]}', ha='center',size='large')
+        ax.text(np.real(pole), np.imag(pole), f'x{model.poles[pole]}', ha='center', size='large')
     for zero in model.zeros.keys():
         ax.scatter(np.real(zero), np.imag(zero), marker="o", color="g", s=100)
-        ax.text(np.real(zero), np.imag(zero), f'x{model.zeros[zero]}', ha='center',size='large')
+        ax.text(np.real(zero), np.imag(zero), f'x{model.zeros[zero]}', ha='center', size='large')
 
     #
     # children = ax._children
@@ -112,14 +125,14 @@ def create_s_plot(model):
     return fig, ax
 
 
-def create_time_plot(model):
+def create_time_plot(model:Model):
     if model.type.name == "DIGITAL":
         return create_digital_impulse_time_response(model)
     elif model.type.name == "ANALOG":
         return create_analog_impulse_time_response(model)
 
 
-def create_digital_impulse_time_response(model):
+def create_digital_impulse_time_response(model:Model):
     fig, ax = plt.subplots(figsize=all_fig_size)
     sys3 = signal.TransferFunction(model.num, model.denom, dt=0.1)
     # t,y = signal.dstep(sys3,n=30)
@@ -132,7 +145,7 @@ def create_digital_impulse_time_response(model):
     return fig, ax
 
 
-def create_analog_impulse_time_response(model):
+def create_analog_impulse_time_response(model:Model):
     fig, ax = plt.subplots(figsize=all_fig_size)
     sys3 = signal.TransferFunction(model.num, model.denom)
     t, y = signal.impulse(sys3)
@@ -143,29 +156,30 @@ def create_analog_impulse_time_response(model):
     ax.set_title("Impulse time response")
     return fig, ax
 
-def get_complex_number_from_list(num_list:list[float,float]) -> complex:
+
+def get_complex_number_from_list(num_list: list[float, float]) -> complex:
     assert len(num_list) == 2, "Complex number not in right format"
     return complex(num_list[0], num_list[1])
 
 
-
-def display_canvas_plot(plotting_canvas: PlottingCanvas,plotting_func:Callable):
+def display_canvas_plot(plotting_canvas: PlottingCanvas, plotting_func: Callable):
     if plotting_canvas.canvas:
         plotting_canvas.canvas.get_tk_widget().destroy()
     fig, ax = plotting_func()
     plotting_canvas.canvas = FigureCanvasTkAgg(fig, plotting_canvas)
     plotting_canvas.canvas.get_tk_widget().grid(sticky="nsew")
 
-# def s_plot_animation(i,ax_line_2d_obj,canvas, max_frame,model):
-#
-#     if i == max_frame:
-#         # fig,ax = thumbnail_func()
-#         canvas.figure = fig
-#
-#     ax_line_2d_obj.set_ydata(np.sin(x + i / 10.0))  # update the data
-#     return ax_line_2d_obj,
-#     # ax.set_ylim([-4, 4])
-#     ...
+
+def analog_freq_animation(frame: int, plotting_canvas: PlottingCanvas, ax_line_2d_obj:Line2D, max_frame:int, model):
+    # ax.set_ylim([-4, 4])
+    if frame == max_frame:
+        fig, ax = create_s_plot(model)
+        plotting_canvas.canvas.figure = fig
+
+    ax_line_2d_obj.set_ydata(np.sin(x + i / 10.0))  # update the data
+    return ax_line_2d_obj,
+
+    ...
 
 # def analog_freq_domain_animation(self, animation_func,thumbnail_func) -> None:
 #     if self.canvas:
