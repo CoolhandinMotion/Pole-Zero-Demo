@@ -158,7 +158,6 @@ class Presenter:
         initial_model_type, initial_filter_type = get_initial_ui_values()
         type = STRING_2_MODELTYPE[initial_model_type]
         filter = STRING_2_FILTERTYPE[initial_filter_type]
-
         self.model.init_default_model(type=type, filter=filter)
         self.app.init_ui(self)
         self.app.mainloop()
