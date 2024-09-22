@@ -26,6 +26,7 @@ class ModelType(Enum):
 class Model:
     type: ModelType = field(init=False)
     filter: FilterType = field(init=False)
+    sampling_time:float = field(init=False,default=.01)
     poles: dict[complex,int] = field(init=False, default_factory=dict)
     zeros: dict[complex,int] = field(init=False, default_factory=dict)
     freqs: list = field(init=False, repr=False, default_factory=list)
@@ -36,6 +37,10 @@ class Model:
     digital_sampling_time: None| float = field(init=False)
     transfer_function:TransferFunction = field(init=False,repr=False)
 
+    @property
+    def sampling_frequency(self):
+        assert self.type == ModelType.DIGITAL, "sampling frequency is only meaningful for Digital filters"
+        return 1/self.sampling_time
 
     def init_default_model(self, type: ModelType, filter: FilterType) -> None:
         self.type = type
@@ -52,10 +57,11 @@ class Model:
         self.num, self.denom = zpk2tf(repeated_zeros_list, repeated_poles_list, 1)
 
     def update_freq_resp(self) -> None:
+        # worN = 1000
         if self.type == ModelType.DIGITAL:
-            self.freqs, self.complex_f_resp = freqz(self.num, self.denom, worN=10000)
+            self.freqs, self.complex_f_resp = freqz(self.num, self.denom,fs=self.sampling_frequency,whole=True)
         elif self.type == ModelType.ANALOG:
-            self.freqs, self.complex_f_resp = freqs(self.num, self.denom, worN=1000)
+            self.freqs, self.complex_f_resp = freqs(self.num, self.denom)
 
     def remove_poles(self,pole_keys:list[complex]) -> None:
         for key in pole_keys:

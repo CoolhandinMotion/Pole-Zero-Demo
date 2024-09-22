@@ -19,12 +19,17 @@ grid_division = 11
 class Model(Protocol):
     type: Enum = field(init=False)
     filter: Enum = field(init=False)
+    sampling_time: float = field(init=False, default=.01)
     poles: dict[complex,int] = field(init=False, default_factory=dict)
     zeros: dict[complex,int] = field(init=False, default_factory=dict)
     freqs: list = field(init=False, repr=False, default_factory=list)
     complex_f_resp: list = field(init=False, repr=False, default_factory=list)
     num: list = field(init=False, repr=False, default_factory=list)
     denom: list = field(init=False, repr=False, default_factory=list)
+
+    @property
+    def sampling_frequency(self):
+        ...
 
 
 @dataclass
@@ -39,6 +44,8 @@ def build_repeated_item_list_from_dict(dictionary: dict) -> list:
 
 def create_freq_resp_plot(model:Model):
     frequencies, freq_complex_resp = model.freqs, model.complex_f_resp
+    print(len(frequencies))
+    print("-"*13)
     fig, ax = plt.subplots(figsize=all_fig_size)
     ax.grid()
     x_values = frequencies
@@ -88,10 +95,10 @@ def create_freq_domain_plot(model:Model):
 
 
 def create_z_plot(model:Model):
-    assert model.type.name == "DIGITAL", "z plot only for descrete case"
+    assert model.type.name == "DIGITAL", "z plot only for Digital (discrete) case"
     fig, ax = create_unit_circle()
     ax.grid()
-    ax.set_title("Pole Zero map")
+    ax.set_title(f"Pole Zero map fs {model.sampling_frequency} Hz")
     for pole in model.poles.keys():
         ax.scatter(np.real(pole), np.imag(pole), marker="X", color="r", s=100)
         ax.text(np.real(pole), np.imag(pole), f'x{model.poles[pole]}', ha='center', size='large')
@@ -129,16 +136,16 @@ def create_time_plot(model:Model):
 
 
 def create_digital_impulse_time_response(model:Model):
-    DT = .1
     fig, ax = plt.subplots(figsize=all_fig_size)
-    sys3 = signal.TransferFunction(model.num, model.denom, dt=DT)
+    sys3 = signal.TransferFunction(model.num, model.denom, dt=model.sampling_time)
     # t,y = signal.dstep(sys3,n=30)
     t, y = signal.dimpulse(sys3, n=30)
-    ax.step(t, np.squeeze(y))
+    ax.step(t, np.squeeze(y),label=f"sampling time {model.sampling_time} s")
     ax.grid()
     ax.set_xlabel("number of samples")
     ax.set_ylabel("amplitude")
-    ax.set_title(f"impulse time response, {DT=} s")
+    ax.set_title(f"impulse time response")
+    ax.legend()
     return fig, ax
 
 
