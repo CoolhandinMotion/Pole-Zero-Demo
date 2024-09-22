@@ -45,6 +45,13 @@ class Model(Protocol):
 class PlottingCanvas(Protocol):
     canvas: FigureCanvasTkAgg
 
+def read_proper_number(number_string:str) -> float | None:
+    try:
+        num = float(number_string)
+        return num
+    except ValueError:
+        return None
+
 
 def build_repeated_item_list_from_dict(dictionary: dict) -> list:
     repeated_list = [key for key, value in dictionary.items() for i in range(value)]

@@ -20,7 +20,7 @@ customtkinter.set_appearance_mode(
 customtkinter.set_default_color_theme(
     "blue"
 )  # Themes: "blue" (standard), "green", "dark-blue"
-
+response_values = ["Impulse response","Step response"]
 model_menu_values = ["Digital", "Analog"]
 filter_menu_values = ["Tief pass", "Hoch pass", "Band pass", "Band stop"]
 
@@ -48,6 +48,8 @@ class Presenter(Protocol):
         ...
 
     def run_animation(self):
+        ...
+    def change_digital_sampling_freq(self):
         ...
 
 
@@ -82,6 +84,7 @@ class App(customtkinter.CTk):
             master=self, text="Confirm", command=presenter.change_manual_model
         )
         self.manual_pole_zero_button.grid(row=3, column=5, sticky="n")
+        self.side_frame.disable_fs_button() if presenter.model.type.name == "ANALOG" else self.side_frame.enable_fs_button()
 
 
 class SideFrame(customtkinter.CTkFrame):
@@ -94,17 +97,28 @@ class SideFrame(customtkinter.CTkFrame):
         self.presenter = presenter
         self.__init_side_frame()
 
+    def open_fs_input_dialog_event(self):
+        dialog = customtkinter.CTkInputDialog(text="Type in sampling frequency in Hz:", title="Change sampling frequency")
+        recieved_text = dialog.get_input()
+        number = utilities.read_proper_number(recieved_text)
+        return number
+
+    def disable_fs_button(self):
+        self.sampling_freq_button.configure(state="disabled", text="Modify fs")
+    def enable_fs_button(self):
+        self.sampling_freq_button.configure(state="enabled", text="Modify fs")
+
     def __init_side_frame(self) -> None:
         self.grid_rowconfigure(tuple(range(12)), weight=1)
-        self.grid_rowconfigure(4, weight=50)
-        self.grid_columnconfigure(0, weight=50)
-        self.grid_columnconfigure(1, weight=1)
+        # self.grid_rowconfigure(4, weight=50)
+
+        self.grid_columnconfigure(tuple(range(1)), weight=1)
         self.grid(row=0, column=0, rowspan=11, sticky="nsew")
 
         self.logo_label = customtkinter.CTkLabel(
             self,
-            text="Zero Pole Demo",
-            font=customtkinter.CTkFont(size=12, weight="bold"),
+            text="FH-Urstein Salzburg",
+            font=customtkinter.CTkFont(size=16, weight="bold"),
         )
         self.logo_label.grid(
             row=0, column=0, columnspan=2, padx=20, pady=20, sticky="n"
@@ -134,15 +148,28 @@ class SideFrame(customtkinter.CTkFrame):
 
         self.optionmenu_filter.grid(row=2, column=0, padx=10, pady=10, sticky="n")
 
-        self.sampling_time_button = customtkinter.CTkButton(
-            master=self, text="Change fs", command=self.presenter.run_animation)
-
-        self.sampling_time_button.grid(row=4, column=0, sticky="s")
-
         self.animation_button = customtkinter.CTkButton(
             master=self, text="Animation", command=self.presenter.run_animation)
+        self.animation_button.grid(row=3, column=0, sticky="n")
 
-        self.animation_button.grid(row=6, column=0, sticky="s")
+        self.sampling_freq_button = customtkinter.CTkButton(
+            master=self, text="Modify fs", command=self.presenter.change_digital_sampling_freq)
+
+        self.sampling_freq_button.grid(row=4, column=0, sticky="n")
+
+
+        value_inside = tk.StringVar()
+        value_inside.set("Impulse response")
+
+        self.optionmenu_response = customtkinter.CTkOptionMenu(
+            self,
+            dynamic_resizing=False,
+            variable=value_inside,
+            values=response_values,
+            command=self.presenter.change_time_response,
+        )
+        self.optionmenu_response.grid(row=5, column=0, padx=10, pady=20, sticky="n")
+
 
 class FilterVisualFrame:
     plots_2_display = []

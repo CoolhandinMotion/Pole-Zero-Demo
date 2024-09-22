@@ -98,6 +98,16 @@ class Presenter:
         self.model = model
         self.app = app
         self.anime = None
+    def change_time_response(self):
+        ...
+    def change_digital_sampling_freq(self):
+        if not self.model.type.name == "DIGITAL":
+            return
+        sampling_freq = self.app.side_frame.open_fs_input_dialog_event()
+        if sampling_freq:
+            self.model.sampling_time = 1/sampling_freq
+            self.change_manual_model()
+
 
     def run_animation(self):
         if self.model.type.name == "ANALOG":
@@ -210,7 +220,6 @@ class Presenter:
     def change_default_model(self, variable):
         model_type_str = self.app.side_frame.optionmenu_model.get()
         filter_type_str = self.app.side_frame.optionmenu_filter.get()
-
         next_model_type = STRING_2_MODELTYPE[model_type_str]
         next_filter_type = STRING_2_FILTERTYPE[filter_type_str]
         "Nader thinks code below is redundant. Except maybe for resetting default factory values "
@@ -227,6 +236,7 @@ class Presenter:
         view.refresh_visual_filter_frame(filter_frame=self.app.visual_filter_frame)
         self.app.pole_number_frame.grid_manual_pole_entries()
         self.app.zero_number_frame.grid_manual_zero_entries()
+        self.app.side_frame.disable_fs_button() if self.model.type.name == "ANALOG" else self.app.side_frame.enable_fs_button()
 
     def handle_manual_coordinates(self):
         all_zero_entries = self.app.zero_number_frame.zeros_2_display.copy()
@@ -264,7 +274,6 @@ class Presenter:
         self.app.zero_number_frame.wipe_manual_zero_entries()
         self.app.pole_number_frame.wipe_manual_pole_entries()
         plt.close("all")
-        # self.app.visual_filter_frame.refresh_plot_frame()
         view.refresh_visual_filter_frame(filter_frame=self.app.visual_filter_frame)
         self.app.pole_number_frame.grid_manual_pole_entries()
         self.app.zero_number_frame.grid_manual_zero_entries()
