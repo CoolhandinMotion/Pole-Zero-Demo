@@ -17,6 +17,11 @@ theta = np.linspace(0, 2 * np.pi, 150)
 radius = 1
 grid_division = 11
 
+
+# ///////Animation Setting
+analog_anim_weight = 10
+analog_anim_max_frame = 30
+
 class ModelType(Enum):
     DIGITAL = auto()
     ANALOG = auto()
@@ -175,7 +180,6 @@ def get_analog_pole_zero_line_objects(model: Model):
     zero_line_2d_objects = []
     pointer_x, pointer_y = 0, 0
     fig, ax = create_s_plot(model)
-    # fig, ax = plt.subplots(figsize=all_fig_size)
     for pole in model.poles.keys():
         line, = ax.plot([pointer_x, np.real(pole)], [pointer_y, np.imag(pole)], color="r")
         pole_line_2d_objects.append(line)
@@ -187,31 +191,46 @@ def get_analog_pole_zero_line_objects(model: Model):
     return fig, ax, line_2d_objects
 
 def analog_pole_zero_animation_func(frame:int,line_2d_objects:list[Line2D],ax,canvas,model):
-    max_frame = 30
-    if frame == max_frame:
+    frequencies = model.freqs
+
+    max_frame = len(frequencies)-1
+    if frame >= max_frame:
         fig,ax = create_s_plot(model)
         canvas.figure = fig
 
     children = ax._children
     for line_obj in children:
         if line_obj in line_2d_objects:
-            next_ydata = line_obj.get_ydata()
-            next_ydata[0] = frame/10
+            next_ydata = line_obj.get_ydata() # object in question is a line, we only increase the y for one end of the line (corresponding to Pointer)
+            next_ydata[0] =  frequencies[frame]
             line_obj.set_ydata(next_ydata)
     return ax,
 
-def run_analog_pole_zero_animation(model:Model,pole_zero_canvas):
-    fig, ax, line_2d_objects = get_analog_pole_zero_line_objects(model)
-    partial_anim_func = partial(analog_pole_zero_animation_func,
-                                line_2d_objects=line_2d_objects,
-                                ax=ax,
-                                canvas=pole_zero_canvas,
-                                model=model)
-    animation_result = animation.FuncAnimation(fig=fig,
-                                                func=partial_anim_func,
-                                                frames=50,
-                                                interval=1000,
-                                                blit=False,
-                                                repeat=False,)
-    return animation_result
+def get_analog_response_line_objects(model:Model):
+    line_2d_objects = []
+    frequencies, freq_complex_resp = model.freqs, model.complex_f_resp
+    pointer_x = frequencies[0]
+    pointer_y = np.abs(freq_complex_resp[0])
 
+    fig, ax = create_freq_resp_plot(model)
+    line = ax.scatter(pointer_x,pointer_y, marker="o", color="b", s=100)
+    line_2d_objects.append(line)
+    return fig, ax, line_2d_objects
+
+def analog_response_animation_func(frame:int,line_2d_objects:list[Line2D],ax,canvas,model):
+    frequencies, freq_complex_resp = model.freqs, model.complex_f_resp
+
+    max_frame = len(frequencies)-1
+    if frame >= max_frame:
+        fig, ax = create_freq_resp_plot(model)
+        canvas.figure = fig
+
+    children = ax._children
+    for line_obj in children:
+        if line_obj in line_2d_objects:
+            new_location = [frequencies[frame],np.abs(freq_complex_resp[frame])]
+            line_obj.set_offsets(new_location)
+            # line_obj.set_xdata(frequencies[frame])
+            # line_obj.set_ydata(np.abs(freq_complex_resp[frame]))
+
+    return ax,

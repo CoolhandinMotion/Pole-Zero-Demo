@@ -47,7 +47,7 @@ class Presenter(Protocol):
     def change_manual_model(self):
         ...
 
-    def run_analog_pole_zero_animation(self):
+    def run_analog_animation(self):
         ...
 
 
@@ -135,7 +135,7 @@ class SideFrame(customtkinter.CTkFrame):
         self.optionmenu_filter.grid(row=2, column=0, padx=10, pady=10, sticky="n")
 
         self.animation_button = customtkinter.CTkButton(
-            master=self, text="Animation", command=self.presenter.run_analog_pole_zero_animation)
+            master=self, text="Animation", command=self.presenter.run_analog_animation)
 
         self.animation_button.grid(row=3, column=0, sticky="s")
 

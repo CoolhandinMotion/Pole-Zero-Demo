@@ -10,7 +10,7 @@ from view import App, get_initial_ui_values
 from customtkinter import CTkEntry
 from enum import Enum,auto
 import gc
-# print(pole_zero_entry._placeholder_text)
+
 
 class EntryOperation(Enum):
     ADDITION = auto()
@@ -72,7 +72,6 @@ def handle_manual_entry(entry: list[CTkEntry,CTkEntry,CTkEntry])-> tuple[EntryOp
         if not new_real is None  and  not new_img is None: #user gave proper inputs, if fach was not provided, default to one
             if fach and fach >0:
                 addition_dict = complex_and_conj_fach_dict(real=new_real,imaginary=new_img,fach=fach)
-                print(f"This is your dict {addition_dict}")
                 return EntryOperation.ADDITION,{"addition":addition_dict}
 
     else:
@@ -93,12 +92,42 @@ def handle_manual_entry(entry: list[CTkEntry,CTkEntry,CTkEntry])-> tuple[EntryOp
 
     return EntryOperation.IGNORE, {}
 
-
+"what do i do with anime objects? how do I get rid of them not to accumulate?"
 class Presenter:
     def __init__(self, model: Model, app: App) -> None:
         self.model = model
         self.app = app
         self.anime = None
+
+
+    def run_analog_animation(self):
+        assert self.model.type.name == "ANALOG"
+        self.run_analog_pole_zero_animation()
+        self.run_analog_response_animation()
+
+    def run_analog_response_animation(self):
+
+        anim_canvas = self.app.visual_filter_frame.canvas_freq_resp
+        if anim_canvas.canvas:
+            anim_canvas.canvas.get_tk_widget().destroy()
+
+        fig, ax, line_2d_objects = utilities.get_analog_response_line_objects(self.model)
+        anim_canvas.canvas = FigureCanvasTkAgg(fig, anim_canvas)
+        anim_canvas.canvas.get_tk_widget().grid(sticky="nsew")
+
+        partial_anim_func = partial(utilities.analog_response_animation_func,
+                                    line_2d_objects=line_2d_objects,
+                                    ax=ax,
+                                    canvas=anim_canvas.canvas,
+                                    model=self.model)
+
+        self.other_anime = animation.FuncAnimation(fig=fig,
+                                                   func=partial_anim_func,
+                                                   frames=len(self.model.freqs),
+                                                   interval=10,
+                                                   blit=False,
+                                                   repeat=False, )
+
 
     def run_analog_pole_zero_animation(self):
         anim_canvas = self.app.visual_filter_frame.canvas_freq_domain
@@ -118,8 +147,8 @@ class Presenter:
                                     model=self.model)
         self.anime = animation.FuncAnimation(fig=fig,
                                                    func=partial_anim_func,
-                                                   frames=50,
-                                                   interval=1000,
+                                                   frames=len(self.model.freqs),
+                                                   interval=10,
                                                    blit=False,
                                                    repeat=False, )
 
