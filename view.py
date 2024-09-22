@@ -95,7 +95,7 @@ class SideFrame(customtkinter.CTkFrame):
         self.__init_side_frame()
 
     def __init_side_frame(self) -> None:
-        self.grid_rowconfigure(tuple(range(3)), weight=1)
+        self.grid_rowconfigure(tuple(range(12)), weight=1)
         self.grid_rowconfigure(4, weight=50)
         self.grid_columnconfigure(0, weight=50)
         self.grid_columnconfigure(1, weight=1)
@@ -134,10 +134,15 @@ class SideFrame(customtkinter.CTkFrame):
 
         self.optionmenu_filter.grid(row=2, column=0, padx=10, pady=10, sticky="n")
 
+        self.sampling_time_button = customtkinter.CTkButton(
+            master=self, text="Change fs", command=self.presenter.run_animation)
+
+        self.sampling_time_button.grid(row=4, column=0, sticky="s")
+
         self.animation_button = customtkinter.CTkButton(
             master=self, text="Animation", command=self.presenter.run_animation)
 
-        self.animation_button.grid(row=3, column=0, sticky="s")
+        self.animation_button.grid(row=6, column=0, sticky="s")
 
 class FilterVisualFrame:
     plots_2_display = []
