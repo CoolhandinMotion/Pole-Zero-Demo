@@ -1,7 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
-
+import utilities
 import view
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib import animation
+from functools import partial
 from model import Model, STRING_2_MODELTYPE, STRING_2_FILTERTYPE
 from view import App, get_initial_ui_values
 from customtkinter import CTkEntry
@@ -95,6 +98,31 @@ class Presenter:
     def __init__(self, model: Model, app: App) -> None:
         self.model = model
         self.app = app
+        self.anime = None
+
+    def run_analog_pole_zero_animation(self):
+        anim_canvas = self.app.visual_filter_frame.canvas_freq_domain
+        if anim_canvas.canvas:
+            anim_canvas.canvas.get_tk_widget().destroy()
+
+        fig, ax, line_2d_objects = utilities.get_analog_pole_zero_line_objects(self.model)
+
+        anim_canvas.canvas = FigureCanvasTkAgg(fig, anim_canvas)
+        anim_canvas.canvas.get_tk_widget().grid(sticky="nsew")
+
+
+        partial_anim_func = partial(utilities.analog_pole_zero_animation_func,
+                                    line_2d_objects=line_2d_objects,
+                                    ax=ax,
+                                    canvas=anim_canvas.canvas,
+                                    model=self.model)
+        self.anime = animation.FuncAnimation(fig=fig,
+                                                   func=partial_anim_func,
+                                                   frames=50,
+                                                   interval=1000,
+                                                   blit=False,
+                                                   repeat=False, )
+
 
     def change_default_model(self, variable):
         model_type_str = self.app.side_frame.optionmenu_model.get()

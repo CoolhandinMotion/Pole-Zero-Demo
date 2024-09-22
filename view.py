@@ -3,7 +3,6 @@ from dataclasses import dataclass
 import customtkinter
 import tkinter as tk
 from typing import Protocol, Callable
-import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -46,6 +45,9 @@ class Presenter(Protocol):
         ...
 
     def change_manual_model(self):
+        ...
+
+    def run_analog_pole_zero_animation(self):
         ...
 
 
@@ -133,8 +135,8 @@ class SideFrame(customtkinter.CTkFrame):
         self.optionmenu_filter.grid(row=2, column=0, padx=10, pady=10, sticky="n")
 
         self.animation_button = customtkinter.CTkButton(
-            master=self, text="Animation", command=self.presenter.change_manual_model
-        )
+            master=self, text="Animation", command=self.presenter.run_analog_pole_zero_animation)
+
         self.animation_button.grid(row=3, column=0, sticky="s")
 
 class FilterVisualFrame:
@@ -326,3 +328,5 @@ def refresh_visual_filter_frame(filter_frame: FilterVisualFrame) -> None:
     for canvas,partial_func in canvas_2_partial_func_plotter_map.items():
         display_canvas_plot(plotting_canvas=canvas,plotting_func=partial_func)
     gc.collect()
+
+
