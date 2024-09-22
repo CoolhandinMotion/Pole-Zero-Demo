@@ -148,34 +148,49 @@ def create_s_plot(model:Model) -> tuple[plt.Figure,plt.axes]:
 
 def create_time_plot(model:Model)->Callable[[Model],tuple[plt.Figure,plt.axes]]:
     if model.type.name == "DIGITAL":
-        return create_digital_impulse_time_response(model)
+        return create_digital_time_response(model)
     elif model.type.name == "ANALOG":
-        return create_analog_impulse_time_response(model)
+        return create_analog_time_response(model)
 
 
-def create_digital_impulse_time_response(model:Model) -> tuple[plt.Figure,plt.axes]:
+def create_digital_time_response(model:Model) -> tuple[plt.Figure,plt.axes]:
     fig, ax = plt.subplots(figsize=all_fig_size)
     sys3 = signal.TransferFunction(model.num, model.denom, dt=model.sampling_time)
-    # t,y = signal.dstep(sys3,n=30)
-    t, y = signal.dimpulse(sys3, n=30)
+    if model.time_resp.name == "IMPULSE":
+        t, y = signal.dimpulse(sys3, n=30)
+        ax.set_title(f"impulse time response")
+    elif model.time_resp.name == "STEP":
+        t, y = signal.dstep(sys3, n=30)
+        ax.set_title(f"step time response")
+    else:
+        raise ValueError("Either Impulse or Step time response")
+
+
     ax.step(t, np.squeeze(y),label=f"sampling time {model.sampling_time} s")
     ax.grid()
     ax.set_xlabel("number of samples")
     ax.set_ylabel("amplitude")
-    ax.set_title(f"impulse time response")
+
     ax.legend()
     return fig, ax
 
 
-def create_analog_impulse_time_response(model:Model) -> tuple[plt.Figure,plt.axes]:
+def create_analog_time_response(model:Model) -> tuple[plt.Figure,plt.axes]:
     fig, ax = plt.subplots(figsize=all_fig_size)
     sys3 = signal.TransferFunction(model.num, model.denom)
-    t, y = signal.impulse(sys3)
+    if model.time_resp.name == "IMPULSE":
+        t, y = signal.impulse(sys3)
+        ax.set_title("impulse time response")
+    elif model.time_resp.name == "STEP":
+        t, y = signal.step(sys3)
+        ax.set_title("step time response")
+    else:
+        raise ValueError("Either Impulse or Step time response")
     ax.plot(t, y)
     ax.grid()
     ax.set_xlabel("time")
     ax.set_ylabel("amplitude")
-    ax.set_title("impulse time response")
+    # ax.set_title("impulse time response")
     return fig, ax
 
 

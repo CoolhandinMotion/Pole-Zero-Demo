@@ -28,8 +28,8 @@ app_geometry = (750, 750)
 
 
 def get_initial_ui_values():
-    # return model_menu_values[0], filter_menu_values[0]
-    return model_menu_values[1], filter_menu_values[-1]
+
+    return model_menu_values[1], filter_menu_values[-1],response_values[0]
 
 @dataclass
 class Model(Protocol):

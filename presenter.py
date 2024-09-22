@@ -5,7 +5,7 @@ import view
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib import animation
 from functools import partial
-from model import Model, STRING_2_MODELTYPE, STRING_2_FILTERTYPE
+from model import Model, STRING_2_MODELTYPE, STRING_2_FILTERTYPE,STRING_2_TIMERESPONSE
 from view import App, get_initial_ui_values
 from customtkinter import CTkEntry
 from enum import Enum,auto
@@ -98,8 +98,12 @@ class Presenter:
         self.model = model
         self.app = app
         self.anime = None
-    def change_time_response(self):
-        ...
+    def change_time_response(self,variable):
+        time_resp_str = self.app.side_frame.optionmenu_response.get()
+        next_time_resp = STRING_2_TIMERESPONSE[time_resp_str]
+        self.model.time_resp = next_time_resp
+        view.refresh_visual_filter_frame(filter_frame=self.app.visual_filter_frame)
+
     def change_digital_sampling_freq(self):
         if not self.model.type.name == "DIGITAL":
             return
@@ -220,11 +224,14 @@ class Presenter:
     def change_default_model(self, variable):
         model_type_str = self.app.side_frame.optionmenu_model.get()
         filter_type_str = self.app.side_frame.optionmenu_filter.get()
+        time_resp_str = self.app.side_frame.optionmenu_response.get()
         next_model_type = STRING_2_MODELTYPE[model_type_str]
         next_filter_type = STRING_2_FILTERTYPE[filter_type_str]
+        next_time_resp = STRING_2_TIMERESPONSE[time_resp_str]
         "Nader thinks code below is redundant. Except maybe for resetting default factory values "
         self.model = Model()
-        self.model.init_default_model(type=next_model_type, filter=next_filter_type)
+        self.model.init_default_model(type=next_model_type, filter=next_filter_type,time_resp=next_time_resp)
+        print(next_time_resp)
         plt.close("all")
         try:
             self.app.zero_number_frame.wipe_manual_zero_entries()
@@ -279,9 +286,10 @@ class Presenter:
         self.app.zero_number_frame.grid_manual_zero_entries()
 
     def run(self):
-        initial_model_type, initial_filter_type = get_initial_ui_values()
+        initial_model_type, initial_filter_type,initial_time_resp = get_initial_ui_values()
         type = STRING_2_MODELTYPE[initial_model_type]
         filter = STRING_2_FILTERTYPE[initial_filter_type]
-        self.model.init_default_model(type=type, filter=filter)
+        time_resp = STRING_2_TIMERESPONSE[initial_time_resp]
+        self.model.init_default_model(type=type, filter=filter,time_resp=time_resp)
         self.app.init_ui(self)
         self.app.mainloop()

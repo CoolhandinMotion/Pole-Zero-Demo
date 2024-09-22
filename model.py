@@ -6,7 +6,9 @@ from scipy.signal import freqz, freqs, zpk2tf, TransferFunction
 from collections import defaultdict
 from utilities import build_repeated_item_list_from_dict,get_complex_number_from_list
 
-
+class TimeResponse(Enum):
+    IMPULSE = auto()
+    STEP = auto()
 
 class FilterType(Enum):
     MANUAL = auto()
@@ -26,6 +28,7 @@ class ModelType(Enum):
 class Model:
     type: ModelType = field(init=False)
     filter: FilterType = field(init=False)
+    time_resp: TimeResponse = field(init=False)
     sampling_time:float = field(init=False,default=.01)
     poles: dict[complex,int] = field(init=False, default_factory=dict)
     zeros: dict[complex,int] = field(init=False, default_factory=dict)
@@ -47,9 +50,10 @@ class Model:
         assert self.type == ModelType.DIGITAL, "sampling frequency is only meaningful for Digital filters"
         return 1/self.sampling_time
 
-    def init_default_model(self, type: ModelType, filter: FilterType) -> None:
+    def init_default_model(self, type: ModelType, filter: FilterType,time_resp:TimeResponse) -> None:
         self.type = type
         self.filter = filter
+        self.time_resp = time_resp
         self.poles, self.zeros = get_default_poles_zeros(
             type_str=self.type.name, filter_str=self.filter.name
         )
@@ -136,3 +140,6 @@ STRING_2_FILTERTYPE = {
     "All pass": FilterType.AP,
     "Manual": FilterType.MANUAL,
 }
+
+STRING_2_TIMERESPONSE = {"Impulse response":TimeResponse.IMPULSE,
+                         "Step response":TimeResponse.STEP}
