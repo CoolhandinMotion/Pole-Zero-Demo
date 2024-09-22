@@ -83,8 +83,8 @@ def handle_manual_entry(entry: list[CTkEntry,CTkEntry,CTkEntry])-> tuple[EntryOp
             return EntryOperation.DELETION, {"deletion":deletion_dict}
 
         #modification means having previous values as default, if not provided by user, use default values
-        new_real = new_real if new_real else float(field_re_old)
-        new_img = new_img if new_img else float(field_img_old)
+        new_real = new_real if not new_real is None else float(field_re_old)
+        new_img = new_img if not new_img is None else float(field_img_old)
         fach = fach if fach not in [None,1] else int(field_fach_old)
         addition_dict = complex_and_conj_fach_dict(real=new_real, imaginary=new_img, fach=fach)
         deletion_dict = complex_and_conj_fach_dict(real=float(field_re_old), imaginary=float(field_img_old), fach=None)
