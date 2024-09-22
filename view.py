@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import customtkinter
 import tkinter as tk
-from typing import Protocol
+from typing import Protocol, Callable
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
@@ -66,8 +66,8 @@ class App(customtkinter.CTk):
         'side_frame hosts different settings that user can choose'
         self.side_frame = SideFrame(self, presenter)
         # self.plot_frame = PlotFrame(self, presenter)
-        'The ResponsePlotFrame itself consists of 4 different canvas that host different plots'
-        self.response_plot_frame = ResponsePlotFrame(self, presenter, 1)
+        'The FilterVisualFrame itself consists of 4 different canvas that host different plots'
+        self.response_plot_frame = FilterVisualFrame(self, presenter, 1)
         'pole_number_frame is a place where user can add manual poles to the filter'
         self.pole_number_frame = ManualPoleNumberFrame(self, presenter)
         'zero_number_frame is a place where user can add manual zeros to the filter'
@@ -136,7 +136,7 @@ class SideFrame(customtkinter.CTkFrame):
         )
         self.animation_button.grid(row=3, column=0, sticky="s")
 
-class ResponsePlotFrame:
+class FilterVisualFrame:
     plots_2_display = []
 
     def __init__(self, master, presenter: Presenter, span) -> None:
@@ -144,10 +144,10 @@ class ResponsePlotFrame:
         self.master = master
         self.presenter = presenter
         self.span = span
-        self.__populate_plot_frame()
+        self.__populate_filter_visual_frame()
         self.__update_canvas_partial_function_plotters()
 
-    def __populate_plot_frame(self) -> None:
+    def __populate_filter_visual_frame(self) -> None:
         # generates pole zero map on top left corner of response frame
         self.canvas_freq_domain = PlottingCanvas(
             self.master, self.presenter, grid_row=0, grid_column=1, span=self.span
@@ -312,3 +312,31 @@ class ManualZeroNumberFrame(customtkinter.CTkScrollableFrame):
                 zero_section.destroy()
 
         self.zeros_2_display.clear()
+
+
+def display_canvas_plot(plotting_canvas: PlottingCanvas, plotting_func: Callable):
+    if plotting_canvas.canvas:
+        plotting_canvas.canvas.get_tk_widget().destroy()
+    fig, ax = plotting_func()
+    plotting_canvas.canvas = FigureCanvasTkAgg(fig, plotting_canvas)
+    plotting_canvas.canvas.get_tk_widget().grid(sticky="nsew")
+
+
+def update_canvas_partial_function_plotters(filter_frame: FilterVisualFrame) -> dict[PlottingCanvas,Callable]:
+    frame = filter_frame
+    canvas_2_partial_func_plotter_map = {
+        frame.canvas_freq_domain: partial(utilities.create_freq_domain_plot, frame.presenter.model),
+        frame.canvas_time_domain: partial(utilities.create_time_plot, frame.presenter.model),
+        frame.canvas_freq_resp: partial(utilities.create_freq_resp_plot, frame.presenter.model),
+        frame.canvas_phase_resp: partial(utilities.create_phase_resp_plot, frame.presenter.model)
+        }
+
+    return canvas_2_partial_func_plotter_map
+
+
+def refresh_plot_frame_func(filter_frame: FilterVisualFrame) -> None:
+    # first refresh the partial functions for each canvas, then plot
+    canvas_2_partial_func_plotter_map = update_canvas_partial_function_plotters(filter_frame=filter_frame)
+    plt.close("all")
+    for canvas,partial_func in canvas_2_partial_func_plotter_map.items():
+        display_canvas_plot(plotting_canvas=canvas,plotting_func=partial_func)
