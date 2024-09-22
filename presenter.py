@@ -121,17 +121,17 @@ class Presenter:
         if anim_canvas.canvas:
             anim_canvas.canvas.get_tk_widget().destroy()
 
-        fig, ax, line_2d_objects = utilities.get_analog_response_line_objects(self.model)
+        fig, ax, line_2d_objects = utilities.get_response_line_objects(self.model)
         anim_canvas.canvas = FigureCanvasTkAgg(fig, anim_canvas)
         anim_canvas.canvas.get_tk_widget().grid(sticky="nsew")
 
-        partial_anim_func = partial(utilities.analog_response_animation_func,
+        partial_anim_func = partial(utilities.response_animation_func,
                                     line_2d_objects=line_2d_objects,
                                     ax=ax,
                                     canvas=anim_canvas.canvas,
                                     model=self.model)
 
-        self.other_anime = animation.FuncAnimation(fig=fig,
+        self.response_anime = animation.FuncAnimation(fig=fig,
                                                    func=partial_anim_func,
                                                    frames=len(self.model.freqs),
                                                    interval=10,
@@ -143,17 +143,17 @@ class Presenter:
         if anim_canvas.canvas:
             anim_canvas.canvas.get_tk_widget().destroy()
 
-        fig, ax, line_2d_objects = utilities.get_digital_response_line_objects(self.model)
+        fig, ax, line_2d_objects = utilities.get_response_line_objects(self.model)
         anim_canvas.canvas = FigureCanvasTkAgg(fig, anim_canvas)
         anim_canvas.canvas.get_tk_widget().grid(sticky="nsew")
 
-        partial_anim_func = partial(utilities.digital_response_animation_func,
+        partial_anim_func = partial(utilities.response_animation_func,
                                     line_2d_objects=line_2d_objects,
                                     ax=ax,
                                     canvas=anim_canvas.canvas,
                                     model=self.model)
 
-        self.other_anime = animation.FuncAnimation(fig=fig,
+        self.response_anime = animation.FuncAnimation(fig=fig,
                                                    func=partial_anim_func,
                                                    frames=len(self.model.freqs),
                                                    interval=10,

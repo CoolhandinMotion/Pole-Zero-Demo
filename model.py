@@ -38,6 +38,11 @@ class Model:
     transfer_function:TransferFunction = field(init=False,repr=False)
 
     @property
+    def normalized_absolute_f_response(self):
+        abs_resp = np.abs(self.complex_f_resp)
+        return abs_resp/np.max(abs_resp)
+
+    @property
     def sampling_frequency(self):
         assert self.type == ModelType.DIGITAL, "sampling frequency is only meaningful for Digital filters"
         return 1/self.sampling_time

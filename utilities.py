@@ -6,8 +6,7 @@ from scipy import signal
 from enum import Enum,auto
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.lines import Line2D
-from matplotlib import animation
-from functools import partial
+
 
 # TODO: "implement step response as well using  t,y = signal.dstep(sys3,n=30)"
 # TODO: "show Fach in int close to x or o pointer on S or Z plane"
@@ -18,9 +17,6 @@ radius = 1
 grid_division = 11
 
 
-# ///////Animation Setting
-analog_anim_weight = 10
-analog_anim_max_frame = 30
 
 class ModelType(Enum):
     DIGITAL = auto()
@@ -41,7 +37,9 @@ class Model(Protocol):
     @property
     def sampling_frequency(self):
         ...
-
+    @property
+    def normalized_absolute_f_response(self):
+        ...
 
 @dataclass
 class PlottingCanvas(Protocol):
@@ -59,17 +57,16 @@ def get_carthasian_coordinates(fraction_of_circle):
     return x,y
 
 def create_freq_resp_plot(model:Model) -> tuple[plt.Figure,plt.axes]:
-    frequencies, freq_complex_resp = model.freqs, model.complex_f_resp
+    frequencies, freq_abs_resp = model.freqs, model.normalized_absolute_f_response
     fig, ax = plt.subplots(figsize=all_fig_size)
     ax.grid()
     x_values = frequencies
-    y_values = np.abs(freq_complex_resp)
+    y_values = freq_abs_resp
+
     ax.plot(x_values, y_values)
-    model_name = f"{model.type.name.lower().capitalize()}"
     ax.set_title(f"frequency response")
     ax.set_xlabel("frequencies")
     ax.set_ylabel("gain")
-    # ax.legend()
     return fig, ax
 
 
@@ -79,11 +76,11 @@ def create_phase_resp_plot(model:Model) -> tuple[plt.Figure,plt.axes]:
     ax.grid()
     x_values = frequencies
     y_values = np.angle(freq_complex_resp)
+    y_values = y_values/np.max(y_values) #normalize phase gain
     ax.plot(x_values, y_values)
     ax.set_title("phase response")
     ax.set_xlabel("frequencies")
     ax.set_ylabel("phase")
-    # ax.legend()
     return fig, ax
 
 
@@ -211,18 +208,18 @@ def analog_pole_zero_animation_func(frame:int,line_2d_objects:list[Line2D],ax,ca
             line_obj.set_ydata(line_ydata)
     return ax,
 
-def get_analog_response_line_objects(model:Model):
+def get_response_line_objects(model:Model):
     line_2d_objects = []
-    frequencies, freq_complex_resp = model.freqs, model.complex_f_resp
+    frequencies, freq_abs_resp = model.freqs, model.normalized_absolute_f_response
     pointer_x = frequencies[0]
-    pointer_y = np.abs(freq_complex_resp[0])
+    pointer_y = freq_abs_resp[0]
     fig, ax = create_freq_resp_plot(model)
     line = ax.scatter(pointer_x,pointer_y, marker="o", color="b", s=100)
     line_2d_objects.append(line)
     return fig, ax, line_2d_objects
 
-def analog_response_animation_func(frame:int,line_2d_objects:list[Line2D],ax,canvas,model):
-    frequencies, freq_complex_resp = model.freqs, model.complex_f_resp
+def response_animation_func(frame:int, line_2d_objects:list[Line2D], ax, canvas, model):
+    frequencies, freq_abs_resp = model.freqs, model.normalized_absolute_f_response
     max_frame = len(frequencies)-1
     if frame >= max_frame:
         fig, ax = create_freq_resp_plot(model)
@@ -231,7 +228,7 @@ def analog_response_animation_func(frame:int,line_2d_objects:list[Line2D],ax,can
     children = ax._children
     for line_obj in children:
         if line_obj in line_2d_objects:
-            new_location = [frequencies[frame],np.abs(freq_complex_resp[frame])]
+            new_location = [frequencies[frame],freq_abs_resp[frame]]
             line_obj.set_offsets(new_location)
     return ax,
 
@@ -269,28 +266,4 @@ def digital_pole_zero_animation_func(frame:int,line_2d_objects:list[Line2D],ax,c
             line_xdata[0] = new_x
             line_obj.set_ydata(line_ydata)
             line_obj.set_xdata(line_xdata)
-    return ax,
-
-def get_digital_response_line_objects(model:Model):
-    line_2d_objects = []
-    frequencies, freq_complex_resp = model.freqs, model.complex_f_resp
-    pointer_x = frequencies[0]
-    pointer_y = np.abs(freq_complex_resp[0])
-    fig, ax = create_freq_resp_plot(model)
-    line = ax.scatter(pointer_x,pointer_y, marker="o", color="b", s=100)
-    line_2d_objects.append(line)
-    return fig, ax, line_2d_objects
-
-def digital_response_animation_func(frame:int,line_2d_objects:list[Line2D],ax,canvas,model):
-    frequencies, freq_complex_resp = model.freqs, model.complex_f_resp
-    max_frame = len(frequencies)-1
-    if frame >= max_frame:
-        fig, ax = create_freq_resp_plot(model)
-        canvas.figure = fig
-
-    children = ax._children
-    for line_obj in children:
-        if line_obj in line_2d_objects:
-            new_location = [frequencies[frame],np.abs(freq_complex_resp[frame])]
-            line_obj.set_offsets(new_location)
     return ax,
