@@ -52,6 +52,11 @@ def build_repeated_item_list_from_dict(dictionary: dict) -> list:
     repeated_list = [key for key, value in dictionary.items() for i in range(value)]
     return repeated_list
 
+def get_carthasian_coordinates(fraction_of_circle):
+    rad = 2*np.pi*fraction_of_circle
+    x = np.cos(rad)
+    y = np.sin(rad)
+    return x,y
 
 def create_freq_resp_plot(model:Model) -> tuple[plt.Figure,plt.axes]:
     frequencies, freq_complex_resp = model.freqs, model.complex_f_resp
@@ -201,9 +206,9 @@ def analog_pole_zero_animation_func(frame:int,line_2d_objects:list[Line2D],ax,ca
     children = ax._children
     for line_obj in children:
         if line_obj in line_2d_objects:
-            next_ydata = line_obj.get_ydata() # object in question is a line, we only increase the y for one end of the line (corresponding to Pointer)
-            next_ydata[0] =  frequencies[frame]
-            line_obj.set_ydata(next_ydata)
+            line_ydata = line_obj.get_ydata() # object in question is a line, we only increase the y for one end of the line (corresponding to Pointer)
+            line_ydata[0] =  frequencies[frame]
+            line_obj.set_ydata(line_ydata)
     return ax,
 
 def get_analog_response_line_objects(model:Model):
@@ -211,7 +216,6 @@ def get_analog_response_line_objects(model:Model):
     frequencies, freq_complex_resp = model.freqs, model.complex_f_resp
     pointer_x = frequencies[0]
     pointer_y = np.abs(freq_complex_resp[0])
-
     fig, ax = create_freq_resp_plot(model)
     line = ax.scatter(pointer_x,pointer_y, marker="o", color="b", s=100)
     line_2d_objects.append(line)
@@ -219,7 +223,6 @@ def get_analog_response_line_objects(model:Model):
 
 def analog_response_animation_func(frame:int,line_2d_objects:list[Line2D],ax,canvas,model):
     frequencies, freq_complex_resp = model.freqs, model.complex_f_resp
-
     max_frame = len(frequencies)-1
     if frame >= max_frame:
         fig, ax = create_freq_resp_plot(model)
@@ -230,7 +233,64 @@ def analog_response_animation_func(frame:int,line_2d_objects:list[Line2D],ax,can
         if line_obj in line_2d_objects:
             new_location = [frequencies[frame],np.abs(freq_complex_resp[frame])]
             line_obj.set_offsets(new_location)
-            # line_obj.set_xdata(frequencies[frame])
-            # line_obj.set_ydata(np.abs(freq_complex_resp[frame]))
+    return ax,
 
+
+def get_digital_pole_zero_line_objects(model: Model):
+    pole_line_2d_objects = []
+    zero_line_2d_objects = []
+    pointer_x, pointer_y = 1, 0
+    fig, ax = create_z_plot(model)
+    for pole in model.poles.keys():
+        line, = ax.plot([pointer_x, np.real(pole)], [pointer_y, np.imag(pole)], color="r")
+        pole_line_2d_objects.append(line)
+    for zero in model.zeros.keys():
+        line, = ax.plot([pointer_x, np.real(zero)], [pointer_y, np.imag(zero)], color="g")
+        zero_line_2d_objects.append(line)
+
+    line_2d_objects = pole_line_2d_objects + zero_line_2d_objects
+    return fig, ax, line_2d_objects
+
+def digital_pole_zero_animation_func(frame:int,line_2d_objects:list[Line2D],ax,canvas,model):
+    frequencies = model.freqs
+    fs = model.sampling_frequency
+    max_frame = len(frequencies)-1
+    if frame >= max_frame:
+        fig,ax = create_z_plot(model)
+        canvas.figure = fig
+
+    children = ax._children
+    for line_obj in children:
+        if line_obj in line_2d_objects:
+            line_ydata = line_obj.get_ydata() # object in question is a line, we only increase the y for one end of the line (corresponding to Pointer)
+            line_xdata = line_obj.get_xdata()
+            new_x , new_y = get_carthasian_coordinates(frequencies[frame]/fs)
+            line_ydata[0] = new_y
+            line_xdata[0] = new_x
+            line_obj.set_ydata(line_ydata)
+            line_obj.set_xdata(line_xdata)
+    return ax,
+
+def get_digital_response_line_objects(model:Model):
+    line_2d_objects = []
+    frequencies, freq_complex_resp = model.freqs, model.complex_f_resp
+    pointer_x = frequencies[0]
+    pointer_y = np.abs(freq_complex_resp[0])
+    fig, ax = create_freq_resp_plot(model)
+    line = ax.scatter(pointer_x,pointer_y, marker="o", color="b", s=100)
+    line_2d_objects.append(line)
+    return fig, ax, line_2d_objects
+
+def digital_response_animation_func(frame:int,line_2d_objects:list[Line2D],ax,canvas,model):
+    frequencies, freq_complex_resp = model.freqs, model.complex_f_resp
+    max_frame = len(frequencies)-1
+    if frame >= max_frame:
+        fig, ax = create_freq_resp_plot(model)
+        canvas.figure = fig
+
+    children = ax._children
+    for line_obj in children:
+        if line_obj in line_2d_objects:
+            new_location = [frequencies[frame],np.abs(freq_complex_resp[frame])]
+            line_obj.set_offsets(new_location)
     return ax,

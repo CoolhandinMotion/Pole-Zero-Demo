@@ -99,11 +99,21 @@ class Presenter:
         self.app = app
         self.anime = None
 
+    def run_animation(self):
+        if self.model.type.name == "ANALOG":
+            self.run_analog_animation()
+        elif self.model.type.name == "DIGITAL":
+            self.run_digital_animation()
 
     def run_analog_animation(self):
         assert self.model.type.name == "ANALOG"
         self.run_analog_pole_zero_animation()
         self.run_analog_response_animation()
+
+    def run_digital_animation(self):
+        assert self.model.type.name == "DIGITAL"
+        self.run_digital_pole_zero_animation()
+        self.run_digital_response_animation()
 
     def run_analog_response_animation(self):
 
@@ -116,6 +126,28 @@ class Presenter:
         anim_canvas.canvas.get_tk_widget().grid(sticky="nsew")
 
         partial_anim_func = partial(utilities.analog_response_animation_func,
+                                    line_2d_objects=line_2d_objects,
+                                    ax=ax,
+                                    canvas=anim_canvas.canvas,
+                                    model=self.model)
+
+        self.other_anime = animation.FuncAnimation(fig=fig,
+                                                   func=partial_anim_func,
+                                                   frames=len(self.model.freqs),
+                                                   interval=10,
+                                                   blit=False,
+                                                   repeat=False, )
+
+    def run_digital_response_animation(self):
+        anim_canvas = self.app.visual_filter_frame.canvas_freq_resp
+        if anim_canvas.canvas:
+            anim_canvas.canvas.get_tk_widget().destroy()
+
+        fig, ax, line_2d_objects = utilities.get_digital_response_line_objects(self.model)
+        anim_canvas.canvas = FigureCanvasTkAgg(fig, anim_canvas)
+        anim_canvas.canvas.get_tk_widget().grid(sticky="nsew")
+
+        partial_anim_func = partial(utilities.digital_response_animation_func,
                                     line_2d_objects=line_2d_objects,
                                     ax=ax,
                                     canvas=anim_canvas.canvas,
@@ -141,6 +173,28 @@ class Presenter:
 
 
         partial_anim_func = partial(utilities.analog_pole_zero_animation_func,
+                                    line_2d_objects=line_2d_objects,
+                                    ax=ax,
+                                    canvas=anim_canvas.canvas,
+                                    model=self.model)
+        self.anime = animation.FuncAnimation(fig=fig,
+                                                   func=partial_anim_func,
+                                                   frames=len(self.model.freqs),
+                                                   interval=10,
+                                                   blit=False,
+                                                   repeat=False, )
+    def run_digital_pole_zero_animation(self):
+        anim_canvas = self.app.visual_filter_frame.canvas_freq_domain
+        if anim_canvas.canvas:
+            anim_canvas.canvas.get_tk_widget().destroy()
+
+        fig, ax, line_2d_objects = utilities.get_digital_pole_zero_line_objects(self.model)
+
+        anim_canvas.canvas = FigureCanvasTkAgg(fig, anim_canvas)
+        anim_canvas.canvas.get_tk_widget().grid(sticky="nsew")
+
+
+        partial_anim_func = partial(utilities.digital_pole_zero_animation_func,
                                     line_2d_objects=line_2d_objects,
                                     ax=ax,
                                     canvas=anim_canvas.canvas,
