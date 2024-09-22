@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
+
+import view
 from model import Model, STRING_2_MODELTYPE, STRING_2_FILTERTYPE
 from view import App, get_initial_ui_values
 from customtkinter import CTkEntry
@@ -105,14 +107,15 @@ class Presenter:
         self.model.init_default_model(type=next_model_type, filter=next_filter_type)
         plt.close("all")
         try:
-            self.app.zero_number_frame.wipe_zero_display()
-            self.app.pole_number_frame.wipe_pole_display()
+            self.app.zero_number_frame.wipe_manual_zero_entries()
+            self.app.pole_number_frame.wipe_manual_pole_entries()
         except Exception:
             ...
             # "Throw proper Error"
-        self.app.response_plot_frame.refresh_plot_frame()
-        self.app.pole_number_frame.display_poles()
-        self.app.zero_number_frame.display_zeros()
+        # self.app.visual_filter_frame.refresh_plot_frame()
+        view.refresh_visual_filter_frame(filter_frame=self.app.visual_filter_frame)
+        self.app.pole_number_frame.grid_manual_pole_entries()
+        self.app.zero_number_frame.grid_manual_zero_entries()
 
     def handle_manual_coordinates(self):
         all_zero_entries = self.app.zero_number_frame.zeros_2_display.copy()
@@ -147,12 +150,13 @@ class Presenter:
         self.handle_manual_coordinates()
         self.model.update_num_denom()
         self.model.update_freq_resp()
-        self.app.zero_number_frame.wipe_zero_display()
-        self.app.pole_number_frame.wipe_pole_display()
+        self.app.zero_number_frame.wipe_manual_zero_entries()
+        self.app.pole_number_frame.wipe_manual_pole_entries()
         plt.close("all")
-        self.app.response_plot_frame.refresh_plot_frame()
-        self.app.pole_number_frame.display_poles()
-        self.app.zero_number_frame.display_zeros()
+        # self.app.visual_filter_frame.refresh_plot_frame()
+        view.refresh_visual_filter_frame(filter_frame=self.app.visual_filter_frame)
+        self.app.pole_number_frame.grid_manual_pole_entries()
+        self.app.zero_number_frame.grid_manual_zero_entries()
 
     def run(self):
         initial_model_type, initial_filter_type = get_initial_ui_values()

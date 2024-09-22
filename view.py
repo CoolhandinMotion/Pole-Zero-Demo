@@ -1,3 +1,4 @@
+import gc
 from dataclasses import dataclass
 import customtkinter
 import tkinter as tk
@@ -52,7 +53,8 @@ class App(customtkinter.CTk):
     def __init__(self) -> None:
         super().__init__()
         # configure window
-        self.response_plot_frame = None
+        self.manual_pole_zero_button = None
+        self.visual_filter_frame = None
         self.side_frame = None
         self.pole_number_frame = None
         self.zero_number_frame = None
@@ -65,9 +67,8 @@ class App(customtkinter.CTk):
         self.grid_rowconfigure(tuple(range(11)), weight=1)
         'side_frame hosts different settings that user can choose'
         self.side_frame = SideFrame(self, presenter)
-        # self.plot_frame = PlotFrame(self, presenter)
         'The FilterVisualFrame itself consists of 4 different canvas that host different plots'
-        self.response_plot_frame = FilterVisualFrame(self, presenter, 1)
+        self.visual_filter_frame = FilterVisualFrame(self, presenter, 1)
         'pole_number_frame is a place where user can add manual poles to the filter'
         self.pole_number_frame = ManualPoleNumberFrame(self, presenter)
         'zero_number_frame is a place where user can add manual zeros to the filter'
@@ -76,7 +77,7 @@ class App(customtkinter.CTk):
         'Below we define buttons that do not belong to any frame but necessary for functionality of the whole program'
         'button below is the confirmation button that users clicks on to confirm addition of new poles or zeros'
         self.manual_pole_zero_button = customtkinter.CTkButton(
-            master=self, text="Eingeben", command=presenter.change_manual_model
+            master=self, text="Confirm", command=presenter.change_manual_model
         )
         self.manual_pole_zero_button.grid(row=3, column=5, sticky="n")
 
@@ -145,7 +146,7 @@ class FilterVisualFrame:
         self.presenter = presenter
         self.span = span
         self.__populate_filter_visual_frame()
-        self.__update_canvas_partial_function_plotters()
+
 
     def __populate_filter_visual_frame(self) -> None:
         # generates pole zero map on top left corner of response frame
@@ -173,23 +174,7 @@ class FilterVisualFrame:
 
         self.plots_2_display.append(self.canvas_phase_resp)
 
-        self.refresh_plot_frame()
-
-    def __update_canvas_partial_function_plotters(self):
-        # temporary partial function that when executes, generates proper time, frequency and phase response
-        # each time model changes in any way (fach, pole, zero, analog/digital) these partial functions are reconstructed
-        self.canvas_2_partial_func_plotter_map = {self.canvas_freq_domain:partial(utilities.create_freq_domain_plot, self.presenter.model),
-                              self.canvas_time_domain:partial(utilities.create_time_plot, self.presenter.model),
-                              self.canvas_freq_resp:partial(utilities.create_freq_resp_plot, self.presenter.model),
-                              self.canvas_phase_resp:partial(utilities.create_phase_resp_plot, self.presenter.model)
-        }
-
-    def refresh_plot_frame(self) -> None:
-        # first refresh the partial functions for each canvas, then plot
-        self.__update_canvas_partial_function_plotters()
-        plt.close("all")
-        for canvas,partial_func in self.canvas_2_partial_func_plotter_map.items():
-            utilities.display_canvas_plot(plotting_canvas=canvas,plotting_func=partial_func)
+        refresh_visual_filter_frame(filter_frame=self)
 
 
     def __wipe_plot_frame(self) -> None:
@@ -238,9 +223,9 @@ class ManualPoleNumberFrame(customtkinter.CTkScrollableFrame):
     def __init_pole_frame(self) -> None:
         self.grid(row=0, column=5, sticky="nsew")
         self.grid_columnconfigure((0, 1, 2, 3, 4, 5), weight=1)
-        self.display_poles()
+        self.grid_manual_pole_entries()
 
-    def display_poles(self) -> None:
+    def grid_manual_pole_entries(self) -> None:
         for i,pole in enumerate(self.presenter.model.poles.keys()):
             entry_re = customtkinter.CTkEntry(self, placeholder_text=f"{np.real(pole)}",placeholder_text_color='white')
             entry_re.grid(row=i, column=0, padx=10, pady=(0, 20))
@@ -262,7 +247,7 @@ class ManualPoleNumberFrame(customtkinter.CTkScrollableFrame):
             entry_fach.grid(row=i, column=4, padx=10, pady=(0, 20))
             self.poles_2_display.append([entry_re, entry_im,entry_fach])# empty placeholders are also objects that are saved for reference
 
-    def wipe_pole_display(self) -> None:
+    def wipe_manual_pole_entries(self) -> None:
         copy_list = self.poles_2_display.copy()
         for pole_display_entry in copy_list:
             for pole_section in pole_display_entry:
@@ -282,9 +267,9 @@ class ManualZeroNumberFrame(customtkinter.CTkScrollableFrame):
     def __init_zero_frame(self) -> None:
         self.grid(row=2, column=5, sticky="nsew")
         self.grid_columnconfigure((0, 1, 2, 3, 4, 5), weight=1)
-        self.display_zeros()
+        self.grid_manual_zero_entries()
 
-    def display_zeros(self) -> None:
+    def grid_manual_zero_entries(self) -> None:
         for i,zero in enumerate(self.presenter.model.zeros.keys()):
             entry_re = customtkinter.CTkEntry(self, placeholder_text=f"{np.real(zero)}",placeholder_text_color='white')
             entry_re.grid(row=i, column=0, padx=10, pady=(0, 20))
@@ -305,7 +290,7 @@ class ManualZeroNumberFrame(customtkinter.CTkScrollableFrame):
             entry_fach.grid(row=i, column=4, padx=10, pady=(0, 20))
             self.zeros_2_display.append([entry_re, entry_im,entry_fach]) # empty placeholders are also objects that are saved here for reference
 
-    def wipe_zero_display(self) -> None:
+    def wipe_manual_zero_entries(self) -> None:
         copy_list = self.zeros_2_display.copy()
         for zero_display_entry in copy_list:
             for zero_section in zero_display_entry:
@@ -314,7 +299,7 @@ class ManualZeroNumberFrame(customtkinter.CTkScrollableFrame):
         self.zeros_2_display.clear()
 
 
-def display_canvas_plot(plotting_canvas: PlottingCanvas, plotting_func: Callable):
+def display_canvas_plot(plotting_canvas: PlottingCanvas, plotting_func: Callable) -> None:
     if plotting_canvas.canvas:
         plotting_canvas.canvas.get_tk_widget().destroy()
     fig, ax = plotting_func()
@@ -334,9 +319,10 @@ def update_canvas_partial_function_plotters(filter_frame: FilterVisualFrame) -> 
     return canvas_2_partial_func_plotter_map
 
 
-def refresh_plot_frame_func(filter_frame: FilterVisualFrame) -> None:
+def refresh_visual_filter_frame(filter_frame: FilterVisualFrame) -> None:
     # first refresh the partial functions for each canvas, then plot
     canvas_2_partial_func_plotter_map = update_canvas_partial_function_plotters(filter_frame=filter_frame)
     plt.close("all")
     for canvas,partial_func in canvas_2_partial_func_plotter_map.items():
         display_canvas_plot(plotting_canvas=canvas,plotting_func=partial_func)
+    gc.collect()

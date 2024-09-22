@@ -43,10 +43,11 @@ def create_freq_resp_plot(model:Model):
     ax.grid()
     x_values = frequencies
     y_values = np.abs(freq_complex_resp)
-    ax.plot(x_values, y_values, label="Frequency response")
-    ax.set_title("Frequency response")
-    ax.set_xlabel("Frequencies")
-    ax.set_ylabel("Gain")
+    ax.plot(x_values, y_values)
+    model_name = f"{model.type.name.lower().capitalize()}"
+    ax.set_title(f"frequency response")
+    ax.set_xlabel("frequencies")
+    ax.set_ylabel("gain")
     # ax.legend()
     return fig, ax
 
@@ -57,7 +58,7 @@ def create_phase_resp_plot(model:Model):
     ax.grid()
     x_values = frequencies
     y_values = np.angle(freq_complex_resp)
-    ax.plot(x_values, y_values, label="Phase response")
+    ax.plot(x_values, y_values)
     ax.set_title("phase response")
     ax.set_xlabel("frequencies")
     ax.set_ylabel("phase")
@@ -98,13 +99,11 @@ def create_z_plot(model:Model):
         ax.scatter(np.real(zero), np.imag(zero), marker="o", color="g", s=100)
         ax.text(np.real(zero), np.imag(zero), f'x{model.zeros[zero]}', ha='center', size='large')
 
-    # children = ax._children
-    # print(children)
     return fig, ax
 
 
 def create_s_plot(model:Model):
-    assert model.type.name == "ANALOG", "S plot is only for continuous case"
+    assert model.type.name == "ANALOG", "S plot is used only for analog (continuous) case"
     fig, ax = plt.subplots(figsize=all_fig_size)
     ax.grid()
     ax.set_ylim([-4, 4])
@@ -119,9 +118,6 @@ def create_s_plot(model:Model):
         ax.scatter(np.real(zero), np.imag(zero), marker="o", color="g", s=100)
         ax.text(np.real(zero), np.imag(zero), f'x{model.zeros[zero]}', ha='center', size='large')
 
-    #
-    # children = ax._children
-    # print(children)
     return fig, ax
 
 
@@ -133,15 +129,16 @@ def create_time_plot(model:Model):
 
 
 def create_digital_impulse_time_response(model:Model):
+    DT = .1
     fig, ax = plt.subplots(figsize=all_fig_size)
-    sys3 = signal.TransferFunction(model.num, model.denom, dt=0.1)
+    sys3 = signal.TransferFunction(model.num, model.denom, dt=DT)
     # t,y = signal.dstep(sys3,n=30)
     t, y = signal.dimpulse(sys3, n=30)
     ax.step(t, np.squeeze(y))
     ax.grid()
-    ax.set_xlabel("Number of samples")
-    ax.set_ylabel("Amplitude")
-    ax.set_title("Impulse time response")
+    ax.set_xlabel("number of samples")
+    ax.set_ylabel("amplitude")
+    ax.set_title(f"impulse time response, {DT=} s")
     return fig, ax
 
 
@@ -152,8 +149,8 @@ def create_analog_impulse_time_response(model:Model):
     ax.plot(t, y)
     ax.grid()
     ax.set_xlabel("time")
-    ax.set_ylabel("Amplitude")
-    ax.set_title("Impulse time response")
+    ax.set_ylabel("amplitude")
+    ax.set_title("impulse time response")
     return fig, ax
 
 
@@ -162,12 +159,6 @@ def get_complex_number_from_list(num_list: list[float, float]) -> complex:
     return complex(num_list[0], num_list[1])
 
 
-def display_canvas_plot(plotting_canvas: PlottingCanvas, plotting_func: Callable):
-    if plotting_canvas.canvas:
-        plotting_canvas.canvas.get_tk_widget().destroy()
-    fig, ax = plotting_func()
-    plotting_canvas.canvas = FigureCanvasTkAgg(fig, plotting_canvas)
-    plotting_canvas.canvas.get_tk_widget().grid(sticky="nsew")
 
 
 def analog_freq_animation(frame: int, plotting_canvas: PlottingCanvas, ax_line_2d_obj:Line2D, max_frame:int, model):
