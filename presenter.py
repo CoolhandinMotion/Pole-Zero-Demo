@@ -180,18 +180,17 @@ class Presenter:
         if anim_canvas.canvas:
             anim_canvas.canvas.get_tk_widget().destroy()
 
-        fig, ax, line_2d_objects = utilities.get_analog_pole_zero_line_objects(self.model)
+        line_obj_dict = utilities.get_analog_pole_zero_line_objects(self.model)
 
-        anim_canvas.canvas = FigureCanvasTkAgg(fig, anim_canvas)
+        anim_canvas.canvas = FigureCanvasTkAgg(line_obj_dict["fig"], anim_canvas)
         anim_canvas.canvas.get_tk_widget().grid(sticky="nsew")
 
 
         partial_anim_func = partial(utilities.analog_pole_zero_animation_func,
-                                    line_2d_objects=line_2d_objects,
-                                    ax=ax,
+                                    line_obj_dict = line_obj_dict,
                                     canvas=anim_canvas.canvas,
                                     model=self.model)
-        self.anime = animation.FuncAnimation(fig=fig,
+        self.anime = animation.FuncAnimation(fig=line_obj_dict["fig"],
                                                    func=partial_anim_func,
                                                    frames=len(self.model.freqs),
                                                    interval=10,

@@ -209,23 +209,58 @@ def get_analog_pole_zero_line_objects(model: Model):
         line, = ax.plot([pointer_x, np.real(zero)], [pointer_y, np.imag(zero)], color="g")
         zero_line_2d_objects.append(line)
 
-    line_2d_objects = pole_line_2d_objects + zero_line_2d_objects
-    return fig, ax, line_2d_objects
 
-def analog_pole_zero_animation_func(frame:int,line_2d_objects:list[Line2D],ax,canvas,model):
+    pole_zero_line_obj_dict = {"pole_line_objects": pole_line_2d_objects,
+                   "zero_line_objects": zero_line_2d_objects,
+                   "fig":fig,
+                   "ax":ax}
+
+    return pole_zero_line_obj_dict
+
+def analog_pole_zero_animation_func(frame:int,line_obj_dict:dict,canvas,model):
     frequencies = model.freqs
-
     max_frame = len(frequencies)-1
     if frame >= max_frame:
         fig,ax = create_s_plot(model)
         canvas.figure = fig
 
+    ax = line_obj_dict["ax"]
     children = ax._children
+    pole_dist = 0
+    zero_dist = 0
+
+    num_pole_line_objs = len(line_obj_dict["pole_line_objects"])
+    num_zero_line_objs = len(line_obj_dict["zero_line_objects"])
+    poles_animated = 0
+    zeros_animated = 0
     for line_obj in children:
-        if line_obj in line_2d_objects:
-            line_ydata = line_obj.get_ydata() # object in question is a line, we only increase the y for one end of the line (corresponding to Pointer)
-            line_ydata[0] =  frequencies[frame]
-            line_obj.set_ydata(line_ydata)
+        if line_obj in line_obj_dict["pole_line_objects"]:
+            line_ydata = line_obj.get_ydata()
+            line_xdata = line_obj.get_xdata()
+
+            line_ydata[0] =  frequencies[frame] # object in question is a line, we only increase the y for one end of the line (corresponding to Pointer)
+            line_obj.set_ydata(line_ydata) # set new y in animation for ascending point on s plane imaginary axis
+            line_corr = np.array([line_xdata, line_ydata]) # put together line coordinates to calculate its length (distance from pole/zero)
+            pole_dist += np.linalg.norm(line_corr[:, 0] - line_corr[:, 1])
+            poles_animated +=1
+            if poles_animated == num_pole_line_objs:
+                line_obj.set_label(f"pole distance {pole_dist:.3f}")
+
+        elif line_obj in line_obj_dict["zero_line_objects"]:
+            line_ydata = line_obj.get_ydata()
+            line_xdata = line_obj.get_xdata()
+
+            line_ydata[0] =  frequencies[frame] # object in question is a line, we only increase the y for one end of the line (corresponding to Pointer)
+            line_obj.set_ydata(line_ydata) # set new y in animation for ascending point on s plane imaginary axis
+            line_corr = np.asarray([line_xdata, line_ydata]) # put together line coordinates to calculate its length (distance from pole/zero)
+            zero_dist += np.linalg.norm(line_corr[:, 0] - line_corr[:, 1])
+            zeros_animated +=1
+
+            if zeros_animated == num_zero_line_objs:
+                line_obj.set_label(f"zero distance {zero_dist:.3f}")
+
+
+    ax.legend()
     return ax,
 
 def get_response_line_objects(model:Model):
@@ -244,7 +279,6 @@ def response_animation_func(frame:int, line_2d_objects:list[Line2D], ax, canvas,
     if frame >= max_frame:
         fig, ax = create_freq_resp_plot(model)
         canvas.figure = fig
-
     children = ax._children
     for line_obj in children:
         if line_obj in line_2d_objects:
