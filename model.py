@@ -2,6 +2,7 @@ from enum import Enum, auto
 from dataclasses import dataclass, field
 import json
 import numpy as np
+from numpy.typing import NDArray
 from scipy.signal import freqz, freqs, zpk2tf, TransferFunction
 from collections import defaultdict
 from utilities import build_repeated_item_list_from_dict,get_complex_number_from_list
@@ -34,16 +35,14 @@ class Model:
     zeros: dict[complex,int] = field(init=False, default_factory=dict)
     freqs: list = field(init=False, repr=False, default_factory=list)
     complex_f_resp: list = field(init=False, repr=False, default_factory=list)
+    normalized_abs_f_resp:NDArray = field(init=False,repr=False)
+    max_abs_resp: float = field(init=False,repr=False)
     num: list = field(init=False, repr=False, default_factory=list)
     denom: list = field(init=False, repr=False, default_factory=list)
     # I can use the below attributes to cache results for making it a bit faster
     digital_sampling_time: None| float = field(init=False)
     transfer_function:TransferFunction = field(init=False,repr=False)
 
-    @property
-    def normalized_absolute_f_response(self):
-        abs_resp = np.abs(self.complex_f_resp)
-        return abs_resp/np.max(abs_resp)
 
     @property
     def sampling_frequency(self):
@@ -71,6 +70,10 @@ class Model:
             self.freqs, self.complex_f_resp = freqz(self.num, self.denom,fs=self.sampling_frequency,whole=True)
         elif self.type == ModelType.ANALOG:
             self.freqs, self.complex_f_resp = freqs(self.num, self.denom)
+
+        abs_resp = np.abs(self.complex_f_resp)
+        self.max_abs_resp = np.max(abs_resp)
+        self.normalized_abs_f_resp = abs_resp / self.max_abs_resp
 
     def remove_poles(self,pole_keys:list[complex]) -> None:
         for key in pole_keys:
