@@ -165,8 +165,7 @@ def create_digital_time_response(model:Model) -> tuple[plt.Figure,plt.axes]:
     else:
         raise ValueError("Either Impulse or Step time response")
 
-
-    ax.step(t, np.squeeze(y),label=f"sampling time {model.sampling_time} s")
+    ax.step(t, np.squeeze(y),label=f"sampling time {np.around(model.sampling_time,decimals=3)} s")
     ax.grid()
     ax.set_xlabel("number of samples")
     ax.set_ylabel("amplitude")
@@ -190,7 +189,6 @@ def create_analog_time_response(model:Model) -> tuple[plt.Figure,plt.axes]:
     ax.grid()
     ax.set_xlabel("time")
     ax.set_ylabel("amplitude")
-    # ax.set_title("impulse time response")
     return fig, ax
 
 
@@ -252,6 +250,8 @@ def response_animation_func(frame:int, line_2d_objects:list[Line2D], ax, canvas,
         if line_obj in line_2d_objects:
             new_location = [frequencies[frame],freq_abs_resp[frame]]
             line_obj.set_offsets(new_location)
+            line_obj.set_label(f"Gain {freq_abs_resp[frame]:.3f}")
+    ax.legend()
     return ax,
 
 

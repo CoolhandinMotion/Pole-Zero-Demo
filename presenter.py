@@ -92,7 +92,7 @@ def handle_manual_entry(entry: list[CTkEntry,CTkEntry,CTkEntry])-> tuple[EntryOp
 
     return EntryOperation.IGNORE, {}
 
-"what do i do with anime objects? how do I get rid of them not to accumulate?"
+
 class Presenter:
     def __init__(self, model: Model, app: App) -> None:
         self.model = model
