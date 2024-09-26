@@ -1,3 +1,5 @@
+import warnings
+warnings.filterwarnings("ignore")
 from dataclasses import dataclass,field
 import numpy as np
 from numpy.typing import NDArray
@@ -116,7 +118,12 @@ def create_z_plot(model:Model) ->tuple[plt.Figure,plt.axes] :
     assert model.type.name == "DIGITAL", "z plot only for Digital (discrete) case"
     fig, ax = create_unit_circle()
     ax.grid()
-    ax.set_title(f"Pole Zero map fs {model.sampling_frequency} Hz")
+    ax.set_title(f"Pole Zero map fs = {model.sampling_frequency} Hz")
+
+    y_labels = ["","","","","",r"$\frac{fs}{2}$","","","",""]
+
+    ax.set_yticklabels(y_labels,rotation='horizontal', fontsize=16)
+    ax.set_xticklabels(y_labels, rotation='horizontal', fontsize=0)
     for pole in model.poles.keys():
         ax.scatter(np.real(pole), np.imag(pole), marker="X", color="r", s=100)
         ax.text(np.real(pole), np.imag(pole), f'x{model.poles[pole]}', ha='center', size='large')
@@ -292,7 +299,7 @@ def response_animation_func(frame:int, line_2d_objects:list[Line2D], ax, canvas,
         if line_obj in line_2d_objects:
             new_location = [frequencies[frame],freq_abs_resp[frame]]
             line_obj.set_offsets(new_location)
-            line_obj.set_label(f"normalized gain {freq_abs_resp[frame]:.3f}")
+            line_obj.set_label(f"gain {freq_abs_resp[frame]:.3f}")
     ax.legend()
     return ax,
 
@@ -378,6 +385,27 @@ def digital_pole_zero_animation_func(frame:int,line_obj_dict:dict,canvas,model):
             new_x , new_y = get_carthasian_coordinates(frequencies[frame]/fs)
             new_location = [new_x,new_y]
             line_obj.set_offsets(new_location)
-            line_obj.set_label(f"z/p {zero_dist/pole_dist:.3f}")
+            degree = get_degree_on_unit_circle(new_x, new_y)
+            pole_over_zero = (zero_dist / pole_dist) / model.max_abs_resp
+            line_obj.set_label(f"z/p {pole_over_zero:.3f} degree {degree:.2f}°")
+            # we can either show the gain for pointer in z plane
+            # line_obj.set_label(f"z/p {(zero_dist/pole_dist)/model.max_abs_resp:.3f} degree")
+            # alternatively we can either show the angle for pointer in z plane
+            # line_obj.set_label(f"degree {get_degree_on_unit_circle(new_x, new_y):.2f}°")
+
     ax.legend()
     return ax,
+
+
+def get_degree_on_unit_circle(x,y):
+    degree = (np.arctan(y/x)/np.pi)*180
+    if x>0 and y>0:
+        return degree
+    elif x>0 and y<0:
+        return 360 + degree
+    elif x<0 and y>0:
+        return 180 + degree
+    elif x<0 and y<0:
+        return 180 + degree
+    else:
+        return degree
