@@ -229,7 +229,6 @@ class Presenter:
         "Nader thinks code below is redundant. Except maybe for resetting default factory values "
         self.model = Model()
         self.model.init_default_model(type=next_model_type, filter=next_filter_type,time_resp=next_time_resp)
-        print(next_time_resp)
         plt.close("all")
         try:
             self.app.zero_number_frame.wipe_manual_zero_entries()
