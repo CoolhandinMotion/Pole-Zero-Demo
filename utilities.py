@@ -118,12 +118,9 @@ def create_phase_resp_plot(model:Model) -> tuple[plt.Figure,plt.axes]:
 
 
 def create_unit_circle() -> tuple[plt.Figure,plt.axes]:
-    # plt.grid(color = 'green', linestyle = '--', linewidth = 0.5)
     a = radius * np.cos(theta)
     b = radius * np.sin(theta)
     fig, ax = plt.subplots(figsize=all_fig_size)
-    # ax.set_axis_off()
-
     ax.grid()
     ax.plot(a, b, c="b")
     ax.axhline(y=0, color="k")
@@ -143,9 +140,7 @@ def create_z_plot(model:Model) ->tuple[plt.Figure,plt.axes] :
     fig, ax = create_unit_circle()
     ax.grid()
     ax.set_title(f"Pole Zero map fs = {model.sampling_frequency} Hz")
-
     y_labels = ["","","","","",r"$\frac{fs}{2}$","","","",""]
-
     ax.set_yticklabels(y_labels,rotation='horizontal', fontsize=16)
     ax.set_xticklabels(y_labels, rotation='horizontal', fontsize=0)
     for pole in model.poles.keys():
@@ -167,6 +162,8 @@ def create_s_plot(model:Model) -> tuple[plt.Figure,plt.axes]:
     ax.axvline(x=0, color="k")
     ax.axhline(y=0, color="k")
     ax.set_title("Pole Zero map")
+    ax.set_xlabel("real axis")
+    ax.set_ylabel("j$\omega$ axis")
     for pole in model.poles.keys():
         ax.scatter(np.real(pole), np.imag(pole), marker="X", color="r", s=100)
         ax.text(np.real(pole), np.imag(pole), f'x{model.poles[pole]}', ha='center', size='large')
