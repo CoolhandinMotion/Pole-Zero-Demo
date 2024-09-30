@@ -227,7 +227,7 @@ class Presenter:
         next_filter_type = STRING_2_FILTERTYPE[filter_type_str]
         next_time_resp = STRING_2_TIMERESPONSE[time_resp_str]
         "Nader thinks code below is redundant. Except maybe for resetting default factory values "
-        self.model = Model()
+        # self.model = Model()
         self.model.init_default_model(type=next_model_type, filter=next_filter_type,time_resp=next_time_resp)
         plt.close("all")
         try:

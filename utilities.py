@@ -65,6 +65,19 @@ def get_carthasian_coordinates(fraction_of_circle):
     y = np.sin(rad)
     return x,y
 
+def get_degree_on_unit_circle(x,y):
+    degree = (np.arctan(y/x)/np.pi)*180
+    if x>0 and y>0:
+        return degree
+    elif x>0 and y<0:
+        return 360 + degree
+    elif x<0 and y>0:
+        return 180 + degree
+    elif x<0 and y<0:
+        return 180 + degree
+    else:
+        return degree
+
 def create_freq_resp_plot(model:Model) -> tuple[plt.Figure,plt.axes]:
     frequencies, freq_abs_resp = model.freqs, model.normalized_abs_f_resp
     fig, ax = plt.subplots(figsize=all_fig_size)
@@ -74,7 +87,12 @@ def create_freq_resp_plot(model:Model) -> tuple[plt.Figure,plt.axes]:
 
     ax.plot(x_values, y_values)
     ax.set_title(f"frequency response")
-    ax.set_xlabel("frequencies")
+
+    if model.type.name == "DIGITAL":
+        ax.set_xlabel("frequencies")
+    elif model.type.name == "ANALOG":
+        ax.set_xlabel(r"angular frequencies $\omega$")
+
     ax.set_ylabel("gain")
     return fig, ax
 
@@ -88,18 +106,21 @@ def create_phase_resp_plot(model:Model) -> tuple[plt.Figure,plt.axes]:
     y_values = y_values/np.max(y_values) #normalize phase gain
     ax.plot(x_values, y_values)
     ax.set_title("phase response")
-    ax.set_xlabel("frequencies")
+
+    if model.type.name == "DIGITAL":
+        ax.set_xlabel("frequencies")
+    elif model.type.name == "ANALOG":
+        ax.set_xlabel(r"angular frequencies $\omega$")
+
+
     ax.set_ylabel("phase")
     return fig, ax
 
 
 def create_unit_circle() -> tuple[plt.Figure,plt.axes]:
-    # plt.grid(color = 'green', linestyle = '--', linewidth = 0.5)
     a = radius * np.cos(theta)
     b = radius * np.sin(theta)
     fig, ax = plt.subplots(figsize=all_fig_size)
-    # ax.set_axis_off()
-
     ax.grid()
     ax.plot(a, b, c="b")
     ax.axhline(y=0, color="k")
@@ -119,9 +140,7 @@ def create_z_plot(model:Model) ->tuple[plt.Figure,plt.axes] :
     fig, ax = create_unit_circle()
     ax.grid()
     ax.set_title(f"Pole Zero map fs = {model.sampling_frequency} Hz")
-
     y_labels = ["","","","","",r"$\frac{fs}{2}$","","","",""]
-
     ax.set_yticklabels(y_labels,rotation='horizontal', fontsize=16)
     ax.set_xticklabels(y_labels, rotation='horizontal', fontsize=0)
     for pole in model.poles.keys():
@@ -143,6 +162,8 @@ def create_s_plot(model:Model) -> tuple[plt.Figure,plt.axes]:
     ax.axvline(x=0, color="k")
     ax.axhline(y=0, color="k")
     ax.set_title("Pole Zero map")
+    ax.set_xlabel("real axis")
+    ax.set_ylabel("j$\omega$ axis")
     for pole in model.poles.keys():
         ax.scatter(np.real(pole), np.imag(pole), marker="X", color="r", s=100)
         ax.text(np.real(pole), np.imag(pole), f'x{model.poles[pole]}', ha='center', size='large')
@@ -299,7 +320,11 @@ def response_animation_func(frame:int, line_2d_objects:list[Line2D], ax, canvas,
         if line_obj in line_2d_objects:
             new_location = [frequencies[frame],freq_abs_resp[frame]]
             line_obj.set_offsets(new_location)
-            line_obj.set_label(f"gain {freq_abs_resp[frame]:.3f}")
+            if model.type.name == "DIGITAL":
+                line_obj.set_label(f"gain {freq_abs_resp[frame]:.3f}, f = {frequencies[frame]:.2f} Hz")
+            elif model.type.name == "ANALOG":
+                line_obj.set_label(f"gain {freq_abs_resp[frame]:.3f}, $\omega$ = {frequencies[frame]:.2f} rad/s ")
+
     ax.legend()
     return ax,
 
@@ -397,15 +422,4 @@ def digital_pole_zero_animation_func(frame:int,line_obj_dict:dict,canvas,model):
     return ax,
 
 
-def get_degree_on_unit_circle(x,y):
-    degree = (np.arctan(y/x)/np.pi)*180
-    if x>0 and y>0:
-        return degree
-    elif x>0 and y<0:
-        return 360 + degree
-    elif x<0 and y>0:
-        return 180 + degree
-    elif x<0 and y<0:
-        return 180 + degree
-    else:
-        return degree
+
