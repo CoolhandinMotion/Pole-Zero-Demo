@@ -237,8 +237,8 @@ class PlottingCanvas(customtkinter.CTkCanvas):
             column=self.grid_column,
             rowspan=self.span,
             columnspan=self.span,
-            sticky="nsew",
-
+            # sticky="nsew",
+            sticky="nw",
         )
 
 
