@@ -223,7 +223,7 @@ class FilterVisualFrame:
 class PlottingCanvas(customtkinter.CTkCanvas):
     """used to create space for matplotlib plots to latch on to, 4 of these will be used throughout code"""
     def __init__(self, master, presenter, grid_row, grid_column, span) -> None:
-        super().__init__(master)
+        super().__init__(master,bg='white')
         self.canvas = None
         self.presenter = presenter
         self.grid_row = grid_row
@@ -237,7 +237,8 @@ class PlottingCanvas(customtkinter.CTkCanvas):
             column=self.grid_column,
             rowspan=self.span,
             columnspan=self.span,
-            sticky="nsew",
+            # sticky="nsew",
+            sticky="nw",
         )
 
 
